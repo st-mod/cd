@@ -1,0 +1,25 @@
+{css-src main.css, ucs-src ucs.js, global []}
+{cd [
+    []
+    \\
+    {from 2 -1, to 0, out 0, in 180, class dashed, ar []}
+    {'H_n(A)'}
+    {ar []}
+    &
+    {'H_n(X)'}
+    {ar []}
+    &
+    {'H_n(X,A)'}
+    {to -2 1, out 0, in 180, style stroke:var(--color-variable), ar []}
+    \\
+    {'H_{n-1}(A)'}
+    {ar []}
+    &
+    {'H_{n-1}(X)'}
+    {ar []}
+    &
+    {'H_{n-1}(X,A)'}
+    {to -2 1, out 0, in 180, class dotted, ar []}
+    \\
+    []
+]}

@@ -1,0 +1,14 @@
+.unit.cd>svg>g,
+.unit.CD>svg>g {
+    stroke: currentColor;
+}
+
+.unit.cd>svg>g.dashed,
+.unit.CD>svg>g.dashed {
+    stroke-dasharray: .3 .2;
+}
+
+.unit.cd>svg>g.dotted,
+.unit.CD>svg>g.dotted {
+    stroke-dasharray: .06 .12;
+}
