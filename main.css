@@ -1,3 +1,7 @@
+.unit.cd {
+    display: inline-block;
+}
+
 .unit.cd>svg>g {
     stroke: currentColor;
 }

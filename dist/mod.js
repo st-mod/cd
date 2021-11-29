@@ -320,6 +320,7 @@ export const cd = async (unit, compiler) => {
     const gap = parseGap(unit.options.gap);
     const element = document.createElement('div');
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    element.classList.add('cd');
     element.style.position = 'relative';
     svg.style.position = 'absolute';
     svg.style.display = 'block';
@@ -400,7 +401,11 @@ export const cd = async (unit, compiler) => {
                 continue;
             }
             cellElements.push({
-                element: createAbsoluteElement(await compiler.compileSTDN(children), element),
+                element: createAbsoluteElement(unit.tag === 'CD' ? await compiler.compileUnit({
+                    tag: 'katex',
+                    options: {},
+                    children
+                }) : await compiler.compileSTDN(children), element),
                 position: {
                     row: i,
                     column: j
@@ -796,3 +801,4 @@ export const cd = async (unit, compiler) => {
     observer.observe(document.body, { childList: true, subtree: true });
     return element;
 };
+export const CD = cd;

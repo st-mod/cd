@@ -69,3 +69,4 @@ export declare function createArrowMark(mark: ArrowMark, d: Coordinate, base: Co
 export declare function placeAbsoluteElement(element: AbsoluteElement, coordinate: Coordinate): void;
 export declare function createAbsoluteElement(content: Node, parent: HTMLDivElement): AbsoluteElement;
 export declare const cd: UnitCompiler;
+export declare const CD: UnitCompiler;
