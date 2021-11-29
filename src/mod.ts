@@ -16,8 +16,8 @@ export interface Cell{
     children:STDN
     id:string
 }
-export interface CellEle{
-    element:HTMLDivElement
+export interface CellElement{
+    element:AbsoluteElement
     position:Position
     id:string
 }
@@ -58,6 +58,11 @@ export interface BaseIdToCount{
 export interface Coordinate{
     x:number
     y:number
+}
+export interface AbsoluteElement{
+    leftControler:HTMLDivElement
+    topControler:HTMLDivElement
+    container:HTMLDivElement
 }
 export function parseGap(option:STDNUnitOptions[string]):Position{
     if(typeof option==='number'&&isFinite(option)){
@@ -338,23 +343,33 @@ export function createArrowMark(mark:ArrowMark,d:Coordinate,base:Coordinate):Bez
         case 'none':return []
     }
 }
-export function placeElement(element:HTMLElement|SVGElement,coordinate:Coordinate){
-    element.style.left=coordinate.x+'em'
-    element.style.top=coordinate.y+'em'
-    element.style.height='0'
-    element.style.width='0'
-    element.style.display='flex'
-    element.style.alignItems='center'
-    element.style.justifyContent='center'
+export function placeAbsoluteElement(element:AbsoluteElement,coordinate:Coordinate){
+    element.leftControler.style.left=coordinate.x+'em'
+    element.topControler.style.height=coordinate.y+'em'
 }
-export function createCenteredElement(content:Node,parent:HTMLDivElement){
-    const element=document.createElement('div')
+export function createAbsoluteElement(content:Node,parent:HTMLDivElement):AbsoluteElement{
+    const leftControler=document.createElement('div')
+    const centerDiv=document.createElement('div')
+    const topControler=document.createElement('div')
     const container=document.createElement('div')
-    element.style.position='absolute'
-    parent.append(element)
-    element.append(container)
+    leftControler.style.position='absolute'
+    leftControler.style.top='0'
+    leftControler.style.width='0'
+    leftControler.style.display='flex'
+    leftControler.style.justifyContent='center'
+    topControler.style.display='inline-block'
+    container.style.display='inline-block'
+    container.style.verticalAlign='-0.5ex'
+    parent.append(leftControler)
+    leftControler.append(centerDiv)
+    centerDiv.append(topControler)
+    centerDiv.append(container)
     container.append(content)
-    return element
+    return {
+        leftControler,
+        topControler,
+        container
+    }
 }
 export const cd:UnitCompiler=async (unit,compiler)=>{
     const gap=parseGap(unit.options.gap)
@@ -433,7 +448,7 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
     const idSet:{
         [key:string]:true|undefined
     }={}
-    const cellEles:CellEle[]=[]
+    const cellElements:CellElement[]=[]
     for(let i=0;i<table.length;i++){
         const row=table[i]
         for(let j=0;j<row.length;j++){
@@ -441,8 +456,8 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
             if(children.length===0){
                 continue
             }
-            cellEles.push({
-                element:createCenteredElement(await compiler.compileSTDN(children),element),
+            cellElements.push({
+                element:createAbsoluteElement(await compiler.compileSTDN(children),element),
                 position:{
                     row:i,
                     column:j
@@ -454,8 +469,8 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
             }
         }
     }
-    const idToLabelEle:{
-        [key:string]:HTMLElement|SVGElement|undefined
+    const idToLabelElement:{
+        [key:string]:AbsoluteElement|undefined
     }={}
     const orderedArrows:Arrow[]=[]
     let remainingArrows=arrows
@@ -477,9 +492,9 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
             }
             orderedArrows.push(arrow)
             for(const {unit,id} of arrow.labels){
-                const labelEle=createCenteredElement(await compiler.compileUnit(unit),element)
-                labelEle.classList.add('label')
-                idToLabelEle[id]=labelEle
+                const labelElement=createAbsoluteElement(await compiler.compileUnit(unit),element)
+                labelElement.container.classList.add('label')
+                idToLabelElement[id]=labelElement
                 idSet[id]=true
             }
         }
@@ -507,8 +522,8 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
         const idToBox:{
             [key:string]:Box|undefined
         }={}
-        for(const {element,position,id} of cellEles){
-            const {height,width}=element.children[0].getBoundingClientRect()
+        for(const {element,position,id} of cellElements){
+            const {height,width}=element.container.getBoundingClientRect()
             const scaledHeight=height*heightScale+2*cellMargin
             const scaledWidth=width*widthScale+2*cellMargin
             const box={
@@ -588,12 +603,12 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
         const idToCoordinate:{
             [key:string]:Coordinate|undefined
         }={}
-        for(const {element,position,id} of cellEles){
+        for(const {element,position,id} of cellElements){
             const coordinate=getCoordinate(position)
             if(id.length>0){
                 idToCoordinate[id]=coordinate
             }
-            placeElement(element,coordinate)
+            placeAbsoluteElement(element,coordinate)
         }
         let xmin=0
         let ymin=0
@@ -784,12 +799,12 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
                     y:root.y-normal.y*allShift
                 }
                 idToCoordinate[id]=base
-                const labelEle=idToLabelEle[id]
+                const labelEle=idToLabelElement[id]
                 if(labelEle===undefined){
                     throw new Error()
                 }
-                placeElement(labelEle,base)
-                const {height,width}=labelEle.children[0].getBoundingClientRect()
+                placeAbsoluteElement(labelEle,base)
+                const {height,width}=labelEle.container.getBoundingClientRect()
                 const scaledHeight=height*heightScale+2*labelMargin
                 const scaledWidth=width*widthScale+2*labelMargin
                 const box={

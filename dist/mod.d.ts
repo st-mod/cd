@@ -7,8 +7,8 @@ export interface Cell {
     children: STDN;
     id: string;
 }
-export interface CellEle {
-    element: HTMLDivElement;
+export interface CellElement {
+    element: AbsoluteElement;
     position: Position;
     id: string;
 }
@@ -50,6 +50,11 @@ export interface Coordinate {
     x: number;
     y: number;
 }
+export interface AbsoluteElement {
+    leftControler: HTMLDivElement;
+    topControler: HTMLDivElement;
+    container: HTMLDivElement;
+}
 export declare function parseGap(option: STDNUnitOptions[string]): Position;
 export declare function parsePosition(option: STDNUnitOptions[string], at: 'from' | 'to', base: Position): Position | string;
 export declare function parseControl(option: STDNUnitOptions[string]): Control | undefined;
@@ -61,6 +66,6 @@ export declare function angleToD(angle: number): Coordinate;
 export declare function dToAngle(d: Coordinate): number;
 export declare function getEdgePoint(angle: number, base: Coordinate, box: Box): Coordinate;
 export declare function createArrowMark(mark: ArrowMark, d: Coordinate, base: Coordinate): Bezier[];
-export declare function placeElement(element: HTMLElement | SVGElement, coordinate: Coordinate): void;
-export declare function createCenteredElement(content: Node, parent: HTMLDivElement): HTMLDivElement;
+export declare function placeAbsoluteElement(element: AbsoluteElement, coordinate: Coordinate): void;
+export declare function createAbsoluteElement(content: Node, parent: HTMLDivElement): AbsoluteElement;
 export declare const cd: UnitCompiler;

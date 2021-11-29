@@ -1,6 +1,6 @@
 {css-src main.css, ucs-src ucs.js, global []}
 {cd [
-    []
+    {'\cdots'}
     \\
     {from 2 -1, to 0, out 0, in 180, class dashed, ar []}
     {'H_n(A)'}
@@ -21,5 +21,5 @@
     {'H_{n-1}(X,A)'}
     {to -2 1, out 0, in 180, class dashed, ar []}
     \\
-    []
+    {'\cdots'}
 ]}
