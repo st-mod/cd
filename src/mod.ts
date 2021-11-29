@@ -44,6 +44,7 @@ export interface Arrow{
     to:Position|string
     out:Control|undefined
     in:Control|undefined
+    bend:Control|undefined
     shift:number
     body:ArrowBody
     head:ArrowMark
@@ -157,6 +158,9 @@ export function parseArrowBody(option:STDNUnitOptions[string]):ArrowBody{
 export function parseArrowMark(option:STDNUnitOptions[string],at:'head'|'tail',body:ArrowBody):ArrowMark{
     if(option==='none'){
         return option
+    }
+    if(option==='arrow'){
+        return body==='two'?'Arrow':option
     }
     if(option==='bar'){
         return body==='two'?'Bar':option
@@ -424,6 +428,7 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
                     to:parsePosition(first.options.to,'to',base),
                     out:parseControl(first.options.out),
                     in:parseControl(first.options.in),
+                    bend:parseControl(first.options.bend),
                     shift:parseArrowShift(first.options.shift),
                     body,
                     head:parseArrowMark(first.options.head,'head',body),
@@ -653,7 +658,7 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
             path.style.fill='none'
             g.append(path)
         }
-        for(const {from,to,out,in:arrowIn,head,tail,shift,body,class:classStr,style,labels} of orderedArrows){
+        for(const {from,to,out,in:arrowIn,bend,head,tail,shift,body,class:classStr,style,labels} of orderedArrows){
             let fromCoordinate:Coordinate
             let toCoordinate:Coordinate
             let fromBox:Box
@@ -705,21 +710,28 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
                 if(length===0){
                     continue
                 }
-                const d={x:dx/length,y:dy/length}
-                const angle=dToAngle(d)
+                const angle=dToAngle({x:dx/length,y:dy/length})
+                let bendAngle=0
+                let bendStrength=1
+                if(bend!==undefined){
+                    bendAngle=bend.angle
+                    bendStrength=bend.strength
+                }
                 if(out===undefined){
-                    start=getEdgePoint(angle,fromCoordinate,fromBox)
-                    startD=d
-                    startStrength=1
+                    const startAngle=angle+bendAngle
+                    start=getEdgePoint(startAngle,fromCoordinate,fromBox)
+                    startD=angleToD(startAngle)
+                    startStrength=bendStrength
                 }else{
                     start=getEdgePoint(out.angle,fromCoordinate,fromBox)
                     startD=angleToD(out.angle)
                     startStrength=out.strength
                 }
                 if(arrowIn===undefined){
-                    end=getEdgePoint(angle+180,toCoordinate,toBox)
-                    endD={x:-d.x,y:-d.y}
-                    endStrength=1
+                    const endAngle=angle+180-bendAngle
+                    end=getEdgePoint(endAngle,toCoordinate,toBox)
+                    endD=angleToD(endAngle)
+                    endStrength=bendStrength
                 }else{
                     end=getEdgePoint(arrowIn.angle,toCoordinate,toBox)
                     endD=angleToD(arrowIn.angle)

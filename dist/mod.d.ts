@@ -35,6 +35,7 @@ export interface Arrow {
     to: Position | string;
     out: Control | undefined;
     in: Control | undefined;
+    bend: Control | undefined;
     shift: number;
     body: ArrowBody;
     head: ArrowMark;

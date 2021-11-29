@@ -1,5 +1,7 @@
 {css-src main.css, ucs-src ucs.js, global []}
-{CD [
+{mod beamer/core, global []}
+{class vcenter, frame [{title [Test]}]}
+{class vcenter, frame [{display [{CD [
     &
     &
     \cdots
@@ -24,4 +26,4 @@
     {to -2 1, out 0, in 180, class dashed, ar []}
     \\
     \cdots
-]}
+]}]}]}
