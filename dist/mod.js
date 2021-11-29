@@ -554,12 +554,11 @@ export const cd = async (unit, compiler) => {
             return { x, y };
         }
         const idToCoordinate = {};
-        for (const { element, position, id } of cellElements) {
+        for (const { position, id } of cellElements) {
             const coordinate = getCoordinate(position);
             if (id.length > 0) {
                 idToCoordinate[id] = coordinate;
             }
-            placeAbsoluteElement(element, coordinate);
         }
         let xmin = 0;
         let ymin = 0;
@@ -767,12 +766,11 @@ export const cd = async (unit, compiler) => {
                     y: root.y - normal.y * allShift
                 };
                 idToCoordinate[id] = base;
-                const labelEle = idToLabelElement[id];
-                if (labelEle === undefined) {
+                const labelElement = idToLabelElement[id];
+                if (labelElement === undefined) {
                     throw new Error();
                 }
-                placeAbsoluteElement(labelEle, base);
-                const { height, width } = labelEle.container.getBoundingClientRect();
+                const { height, width } = labelElement.container.getBoundingClientRect();
                 const scaledHeight = height * heightScale + 2 * labelMargin;
                 const scaledWidth = width * widthScale + 2 * labelMargin;
                 const box = {
@@ -780,19 +778,47 @@ export const cd = async (unit, compiler) => {
                     width: scaledWidth
                 };
                 idToBox[id] = box;
+                const xmin0 = base.x - box.width / 2;
+                const xmax0 = base.x + box.width / 2;
+                const ymin0 = base.y - box.height / 2;
+                const ymax0 = base.y + box.height / 2;
+                if (xmin0 < xmin) {
+                    xmin = xmin0;
+                }
+                if (xmax0 > xmax) {
+                    xmax = xmax0;
+                }
+                if (ymin0 < ymin) {
+                    ymin = ymin0;
+                }
+                if (ymax0 > ymax) {
+                    ymax = ymax0;
+                }
             }
         }
         const width = xmax - xmin;
         const height = ymax - ymin;
-        element.style.marginLeft = -xmin + 'em';
-        element.style.marginTop = -ymin + 'em';
-        element.style.width = xmax + 'em';
-        element.style.height = ymax + 'em';
+        element.style.width = svg.style.width = width + 'em';
+        element.style.height = svg.style.height = height + 'em';
         svg.setAttribute('viewBox', `${xmin} ${ymin} ${width} ${height}`);
-        svg.style.left = xmin + 'em';
-        svg.style.top = ymin + 'em';
-        svg.style.width = width + 'em';
-        svg.style.height = height + 'em';
+        for (const { element, position } of cellElements) {
+            const coordinate = getCoordinate(position);
+            placeAbsoluteElement(element, {
+                x: coordinate.x - xmin,
+                y: coordinate.y - ymin
+            });
+        }
+        for (const id of Object.keys(idToLabelElement)) {
+            const labelElement = idToLabelElement[id];
+            const base = idToCoordinate[id];
+            if (labelElement === undefined || base === undefined) {
+                continue;
+            }
+            placeAbsoluteElement(labelElement, {
+                x: base.x - xmin,
+                y: base.y - ymin
+            });
+        }
         return svg.innerHTML;
     }
     const observer = new MutationObserver(async () => {

@@ -14,7 +14,7 @@
     {ar, 'j_*'}
     &
     'H_n(X,A)'
-    {to -2 1, out 0, in 180, style stroke:var(--color-variable), ar [{at 0.3, '\partial_*'}]}
+    {to -2 1, out 0, in 180, style color:var(--color-variable), ar [{at 0.3, '\partial_*'}]}
     \\
     'H_{n-1}(A)'
     {ar, 'i_*'}
