@@ -3,12 +3,12 @@
     stroke: currentColor;
 }
 
-.unit.cd>svg>g.dashed,
-.unit.CD>svg>g.dashed {
+.unit.cd>svg>g.dashed>path:first-child,
+.unit.CD>svg>g.dashed>path:first-child {
     stroke-dasharray: .3 .2;
 }
 
-.unit.cd>svg>g.dotted,
-.unit.CD>svg>g.dotted {
+.unit.cd>svg>g.dotted>path:first-child,
+.unit.CD>svg>g.dotted>path:first-child {
     stroke-dasharray: .06 .12;
 }

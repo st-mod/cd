@@ -1,5 +1,6 @@
 import { UnitCompiler } from '@ddu6/stc';
 import { STDN, STDNUnit, STDNUnitOptions } from 'stdn';
+import { Bezier } from 'bezier-js';
 export declare type ArrowMark = 'arrow' | 'Arrow' | 'bar' | 'Bar' | 'harpoon' | 'harpoon-' | 'hook' | 'hook-' | 'tail' | 'two' | 'none';
 export declare type ArrowBody = 'two' | 'one';
 export interface Cell {
@@ -59,4 +60,5 @@ export declare function extractLabels(unit: STDNUnit, baseIdToCount: BaseIdToCou
 export declare function angleToD(angle: number): Coordinate;
 export declare function dToAngle(d: Coordinate): number;
 export declare function getEdgePoint(angle: number, base: Coordinate, box: Box): Coordinate;
+export declare function createArrowMark(mark: ArrowMark, d: Coordinate, base: Coordinate): Bezier[];
 export declare const cd: UnitCompiler;

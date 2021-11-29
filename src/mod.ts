@@ -276,6 +276,68 @@ export function getEdgePoint(angle:number,base:Coordinate,box:Box):Coordinate{
     }
     return {x:base.x+x,y:base.y+y}
 }
+const harpoon=[5.4,6.5,4.8,3,2,1,0,0]
+const Harpoon=[4.5,7.5,3,4.5,-1.5,1,-4.5,0]
+const hook=[0,0,-6,0,-6,-5,0,-5]
+const bar=[0,5,0,0,0,-5]
+const Bar=[0,7.5,0,0,0,-7.5]
+export function createArrowMark(mark:ArrowMark,d:Coordinate,base:Coordinate):Bezier[]{
+    function rotateCoordinate(coordinate:Coordinate):Coordinate{
+        return {
+            x:base.x+coordinate.x*arrowWidth*d.x-coordinate.y*arrowWidth*d.y,
+            y:base.y+coordinate.y*arrowWidth*d.x+coordinate.x*arrowWidth*d.y
+        }
+    }
+    function rotateCoordinates(...coordinates:number[]){
+        const out:number[]=[]
+        const num=Math.floor(coordinates.length/2)
+        for(let i=0;i<num;i++){
+            const j=2*i
+            const {x,y}=rotateCoordinate({x:coordinates[j],y:coordinates[j+1]})
+            out.push(x,y)
+        }
+        return out
+    }
+    switch(mark){
+        case 'harpoon':return [
+            new Bezier(rotateCoordinates(...harpoon))
+        ]
+        case 'harpoon-':return [
+            new Bezier(rotateCoordinates(...harpoon.map((val,i)=>i%2===0?val:-val)))
+        ]
+        case 'arrow':return [
+            new Bezier(rotateCoordinates(...harpoon)),
+            new Bezier(rotateCoordinates(...harpoon.map((val,i)=>i%2===0?val:-val)))
+        ]
+        case 'Arrow':return [
+            new Bezier(rotateCoordinates(...Harpoon)),
+            new Bezier(rotateCoordinates(...Harpoon.map((val,i)=>i%2===0?val:-val)))
+        ]
+        case 'tail':return [
+            new Bezier(rotateCoordinates(...harpoon.map((val,i)=>i%2===0?-val:val))),
+            new Bezier(rotateCoordinates(...harpoon.map(val=>-val)))
+        ]
+        case 'two':return [
+            new Bezier(rotateCoordinates(...harpoon)),
+            new Bezier(rotateCoordinates(...harpoon.map((val,i)=>i%2===0?val:-val))),
+            new Bezier(rotateCoordinates(...harpoon.map((val,i)=>i%2===0?val-4.5:val))),
+            new Bezier(rotateCoordinates(...harpoon.map((val,i)=>i%2===0?val-4.5:-val)))
+        ]
+        case 'hook':return [
+            new Bezier(rotateCoordinates(...hook))
+        ]
+        case 'hook-':return [
+            new Bezier(rotateCoordinates(...hook.map((val,i)=>i%2===0?val:-val)))
+        ]
+        case 'bar':return [
+            new Bezier(rotateCoordinates(...bar))
+        ]
+        case 'Bar':return [
+            new Bezier(rotateCoordinates(...Bar))
+        ]
+        case 'none':return []
+    }
+}
 export const cd:UnitCompiler=async (unit,compiler)=>{
     const gap=parseGap(unit.options.gap)
     const element=document.createElement('div')
@@ -526,14 +588,16 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
         let xmax=getCoordinate({row:0,column:columnWidths.length}).x
         let ymax=getCoordinate({row:rowHeights.length,column:0}).y
         function drawCurve(curve:Bezier,shift:number,g:SVGGElement){
-            const result=curve.offset(shift)
-            if(Array.isArray(result)){
-                const path=document.createElementNS('http://www.w3.org/2000/svg','path')
-                path.setAttribute('d',result.map(val=>val.toSVG()).join(' '))
-                path.style.strokeWidth=arrowWidth+'px'
-                path.style.fill='none'
-                g.append(path)
-                const {x,y}=curve.bbox()
+            const pieces=curve.offset(shift)
+            if(Array.isArray(pieces)){
+                drawPieces(pieces,g)
+            }
+        }
+        function drawPieces(pieces:Bezier[],g:SVGGElement){
+            const drawArray:string[]=[]
+            for(const piece of pieces){
+                drawArray.push(piece.toSVG())
+                const {x,y}=piece.bbox()
                 const xmin0=x.min-arrowWidth
                 const xmax0=x.max+arrowWidth
                 const ymin0=y.min-arrowWidth
@@ -551,6 +615,11 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
                     ymax=ymax0
                 }
             }
+            const path=document.createElementNS('http://www.w3.org/2000/svg','path')
+            path.setAttribute('d',drawArray.join(' '))
+            path.style.strokeWidth=arrowWidth+'px'
+            path.style.fill='none'
+            g.append(path)
         }
         for(const {from,to,out,in:arrowIn,head,tail,shift,body,class:classStr,style} of orderedArrows){
             let fromCoordinate:Coordinate
@@ -653,35 +722,35 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
                 y:end.y+endD.y*length/3*endStrength
             }
             const curve=new Bezier(start.x,start.y,startControl.x,startControl.y,endControl.x,endControl.y,end.x,end.y)
+            const g=document.createElementNS('http://www.w3.org/2000/svg','g')
+            try{
+                g.setAttribute('class',classStr)
+            }catch(err){
+                console.log(err)
+            }
+            try{
+                g.setAttribute('style',style)
+            }catch(err){
+                console.log(err)
+            }
+            svg.append(g)
             if(body==='two'){
-                const g=document.createElementNS('http://www.w3.org/2000/svg','g')
-                try{
-                    g.setAttribute('class',classStr)
-                }catch(err){
-                    console.log(err)
-                }
-                try{
-                    g.setAttribute('style',style)
-                }catch(err){
-                    console.log(err)
-                }
-                svg.append(g)
                 drawCurve(curve,shift+twoArrowBodyShift,g)
                 drawCurve(curve,shift-twoArrowBodyShift,g)
             }else{
-                const g=document.createElementNS('http://www.w3.org/2000/svg','g')
-                try{
-                    g.setAttribute('class',classStr)
-                }catch(err){
-                    console.log(err)
-                }
-                try{
-                    g.setAttribute('style',style)
-                }catch(err){
-                    console.log(err)
-                }
-                svg.append(g)
                 drawCurve(curve,shift,g)
+            }
+            {
+                const pieces=createArrowMark(head,endD,end)
+                if(pieces.length>0){
+                    drawPieces(pieces,g)
+                }
+            }
+            {
+                const pieces=createArrowMark(tail,startD,start)
+                if(pieces.length>0){
+                    drawPieces(pieces,g)
+                }
             }
         }
         const width=xmax-xmin
