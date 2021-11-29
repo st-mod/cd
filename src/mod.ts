@@ -6,6 +6,7 @@ const arrowBigMarkMargin=4*arrowWidth
 const twoArrowBodyShift=2.5*arrowWidth
 const defaultLabelShift=.6
 const defaultArrowShift=6*arrowWidth
+const defaultBendAngle=30
 const defaultRowGap=1.8
 const defaultColumnGap=2.4
 const cellMargin=.5
@@ -122,6 +123,12 @@ export function parseControl(option:STDNUnitOptions[string]):Control|undefined{
     if(typeof option==='number'&&isFinite(option)){
         return {
             angle:option,
+            strength:1
+        }
+    }
+    if(option===true){
+        return {
+            angle:defaultBendAngle,
             strength:1
         }
     }
