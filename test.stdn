@@ -1,5 +1,7 @@
 {css-src main.css, ucs-src ucs.js, global []}
 {cd [
+    &
+    &
     {'\cdots'}
     \\
     {from 2 -1, to 0, out 0, in 180, class dashed, ar []}
