@@ -61,4 +61,6 @@ export declare function angleToD(angle: number): Coordinate;
 export declare function dToAngle(d: Coordinate): number;
 export declare function getEdgePoint(angle: number, base: Coordinate, box: Box): Coordinate;
 export declare function createArrowMark(mark: ArrowMark, d: Coordinate, base: Coordinate): Bezier[];
+export declare function placeElement(element: HTMLElement | SVGElement, coordinate: Coordinate): void;
+export declare function createCenteredElement(content: Node, parent: HTMLDivElement): HTMLDivElement;
 export declare const cd: UnitCompiler;

@@ -4,12 +4,12 @@ import {Bezier} from 'bezier-js'
 const arrowWidth=.04
 const arrowBigMarkMargin=4*arrowWidth
 const twoArrowBodyShift=2.5*arrowWidth
-const defaultLabelShift=.8
+const defaultLabelShift=.6
 const defaultArrowShift=6*arrowWidth
 const defaultRowGap=1.8
 const defaultColumnGap=2.4
 const cellMargin=.5
-
+const labelMargin=.3
 export type ArrowMark='arrow'|'Arrow'|'bar'|'Bar'|'harpoon'|'harpoon-'|'hook'|'hook-'|'tail'|'two'|'none'
 export type ArrowBody='two'|'one'
 export interface Cell{
@@ -338,6 +338,24 @@ export function createArrowMark(mark:ArrowMark,d:Coordinate,base:Coordinate):Bez
         case 'none':return []
     }
 }
+export function placeElement(element:HTMLElement|SVGElement,coordinate:Coordinate){
+    element.style.left=coordinate.x+'em'
+    element.style.top=coordinate.y+'em'
+    element.style.height='0'
+    element.style.width='0'
+    element.style.display='flex'
+    element.style.alignItems='center'
+    element.style.justifyContent='center'
+}
+export function createCenteredElement(content:Node,parent:HTMLDivElement){
+    const element=document.createElement('div')
+    const container=document.createElement('div')
+    element.style.position='absolute'
+    parent.append(element)
+    element.append(container)
+    container.append(content)
+    return element
+}
 export const cd:UnitCompiler=async (unit,compiler)=>{
     const gap=parseGap(unit.options.gap)
     const element=document.createElement('div')
@@ -423,14 +441,8 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
             if(children.length===0){
                 continue
             }
-            const point=document.createElement('div')
-            const container=document.createElement('div')
-            point.style.position='absolute'
-            element.append(point)
-            point.append(container)
-            container.append(await compiler.compileSTDN(children))
             cellEles.push({
-                element:point,
+                element:createCenteredElement(await compiler.compileSTDN(children),element),
                 position:{
                     row:i,
                     column:j
@@ -442,6 +454,9 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
             }
         }
     }
+    const idToLabelEle:{
+        [key:string]:HTMLElement|SVGElement|undefined
+    }={}
     const orderedArrows:Arrow[]=[]
     let remainingArrows=arrows
     while(true){
@@ -461,7 +476,10 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
                 }
             }
             orderedArrows.push(arrow)
-            for(const {id} of arrow.labels){
+            for(const {unit,id} of arrow.labels){
+                const labelEle=createCenteredElement(await compiler.compileUnit(unit),element)
+                labelEle.classList.add('label')
+                idToLabelEle[id]=labelEle
                 idSet[id]=true
             }
         }
@@ -575,20 +593,14 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
             if(id.length>0){
                 idToCoordinate[id]=coordinate
             }
-            element.style.left=coordinate.x+'em'
-            element.style.top=coordinate.y+'em'
-            element.style.height='0'
-            element.style.width='0'
-            element.style.display='flex'
-            element.style.alignItems='center'
-            element.style.justifyContent='center'
+            placeElement(element,coordinate)
         }
         let xmin=0
         let ymin=0
         let xmax=getCoordinate({row:0,column:columnWidths.length}).x
         let ymax=getCoordinate({row:rowHeights.length,column:0}).y
         function drawCurve(curve:Bezier,shift:number,g:SVGGElement){
-            const pieces=curve.offset(shift)
+            const pieces=curve.offset(-shift)
             if(Array.isArray(pieces)){
                 drawPieces(pieces,g)
             }
@@ -621,7 +633,7 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
             path.style.fill='none'
             g.append(path)
         }
-        for(const {from,to,out,in:arrowIn,head,tail,shift,body,class:classStr,style} of orderedArrows){
+        for(const {from,to,out,in:arrowIn,head,tail,shift,body,class:classStr,style,labels} of orderedArrows){
             let fromCoordinate:Coordinate
             let toCoordinate:Coordinate
             let fromBox:Box
@@ -741,16 +753,50 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
                 drawCurve(curve,shift,g)
             }
             {
-                const pieces=createArrowMark(head,endD,end)
+                const base:Coordinate={
+                    x:end.x-endD.y*shift,
+                    y:end.y+endD.x*shift
+                }
+                const pieces=createArrowMark(head,endD,base)
                 if(pieces.length>0){
                     drawPieces(pieces,g)
                 }
             }
             {
-                const pieces=createArrowMark(tail,startD,start)
+                const base:Coordinate={
+                    x:start.x+startD.y*shift,
+                    y:start.y-startD.x*shift
+                }
+                const pieces=createArrowMark(tail,startD,base)
                 if(pieces.length>0){
                     drawPieces(pieces,g)
                 }
+            }
+            for(const {at,shift:labelShift,id} of labels){
+                const root=curve.get(at)
+                const normal=curve.normal(at)
+                let allShift=shift+labelShift
+                if(body==='two'&&labelShift!==0){
+                    allShift+=twoArrowBodyShift*Math.sign(labelShift)
+                }
+                const base:Coordinate={
+                    x:root.x-normal.x*allShift,
+                    y:root.y-normal.y*allShift
+                }
+                idToCoordinate[id]=base
+                const labelEle=idToLabelEle[id]
+                if(labelEle===undefined){
+                    throw new Error()
+                }
+                placeElement(labelEle,base)
+                const {height,width}=labelEle.children[0].getBoundingClientRect()
+                const scaledHeight=height*heightScale+2*labelMargin
+                const scaledWidth=width*widthScale+2*labelMargin
+                const box={
+                    height:scaledHeight,
+                    width:scaledWidth
+                }
+                idToBox[id]=box
             }
         }
         const width=xmax-xmin

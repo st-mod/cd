@@ -1,14 +1,15 @@
-.unit.cd>svg>g,
-.unit.CD>svg>g {
+.unit.cd>svg>g {
     stroke: currentColor;
 }
 
-.unit.cd>svg>g.dashed>path:first-child,
-.unit.CD>svg>g.dashed>path:first-child {
+.unit.cd>svg>g.dashed>path:first-child {
     stroke-dasharray: .3 .2;
 }
 
-.unit.cd>svg>g.dotted>path:first-child,
-.unit.CD>svg>g.dotted>path:first-child {
+.unit.cd>svg>g.dotted>path:first-child {
     stroke-dasharray: .06 .12;
+}
+
+.unit.cd>div.label>div {
+    font-size: var(--length-font-log);
 }
