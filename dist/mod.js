@@ -10,6 +10,7 @@ const defaultRowGap = 1.8;
 const defaultColumnGap = 2.4;
 const cellMargin = .5;
 const labelMargin = .3;
+const squigglePeriod = .5;
 export function parseGap(option) {
     if (typeof option === 'number' && isFinite(option)) {
         return {
@@ -101,7 +102,7 @@ export function parseArrowShift(option) {
     return 0;
 }
 export function parseArrowBody(option) {
-    if (option === 'two') {
+    if (option === 'two' || option === 'squiggle') {
         return option;
     }
     return 'one';
@@ -244,58 +245,58 @@ const hook = [0, 0, -6, 0, -6, -5, 0, -5];
 const bar = [0, 5, 0, 0, 0, -5];
 const Bar = [0, 7.5, 0, 0, 0, -7.5];
 export function createArrowMark(mark, d, base) {
-    function rotateCoordinate(coordinate) {
+    function rotateAndScaleOne(coordinate) {
         return {
             x: base.x + coordinate.x * arrowWidth * d.x - coordinate.y * arrowWidth * d.y,
             y: base.y + coordinate.y * arrowWidth * d.x + coordinate.x * arrowWidth * d.y
         };
     }
-    function rotateCoordinates(...coordinates) {
+    function trans(...coordinates) {
         const out = [];
         const num = Math.floor(coordinates.length / 2);
         for (let i = 0; i < num; i++) {
             const j = 2 * i;
-            const { x, y } = rotateCoordinate({ x: coordinates[j], y: coordinates[j + 1] });
+            const { x, y } = rotateAndScaleOne({ x: coordinates[j], y: coordinates[j + 1] });
             out.push(x, y);
         }
         return out;
     }
     switch (mark) {
         case 'harpoon': return [
-            new Bezier(rotateCoordinates(...harpoon))
+            new Bezier(trans(...harpoon))
         ];
         case 'harpoon-': return [
-            new Bezier(rotateCoordinates(...harpoon.map((val, i) => i % 2 === 0 ? val : -val)))
+            new Bezier(trans(...harpoon.map((val, i) => i % 2 === 0 ? val : -val)))
         ];
         case 'arrow': return [
-            new Bezier(rotateCoordinates(...harpoon)),
-            new Bezier(rotateCoordinates(...harpoon.map((val, i) => i % 2 === 0 ? val : -val)))
+            new Bezier(trans(...harpoon)),
+            new Bezier(trans(...harpoon.map((val, i) => i % 2 === 0 ? val : -val)))
         ];
         case 'Arrow': return [
-            new Bezier(rotateCoordinates(...Harpoon)),
-            new Bezier(rotateCoordinates(...Harpoon.map((val, i) => i % 2 === 0 ? val : -val)))
+            new Bezier(trans(...Harpoon)),
+            new Bezier(trans(...Harpoon.map((val, i) => i % 2 === 0 ? val : -val)))
         ];
         case 'tail': return [
-            new Bezier(rotateCoordinates(...harpoon.map((val, i) => i % 2 === 0 ? -val : val))),
-            new Bezier(rotateCoordinates(...harpoon.map(val => -val)))
+            new Bezier(trans(...harpoon.map((val, i) => i % 2 === 0 ? -val : val))),
+            new Bezier(trans(...harpoon.map(val => -val)))
         ];
         case 'two': return [
-            new Bezier(rotateCoordinates(...harpoon)),
-            new Bezier(rotateCoordinates(...harpoon.map((val, i) => i % 2 === 0 ? val : -val))),
-            new Bezier(rotateCoordinates(...harpoon.map((val, i) => i % 2 === 0 ? val - 4.5 : val))),
-            new Bezier(rotateCoordinates(...harpoon.map((val, i) => i % 2 === 0 ? val - 4.5 : -val)))
+            new Bezier(trans(...harpoon)),
+            new Bezier(trans(...harpoon.map((val, i) => i % 2 === 0 ? val : -val))),
+            new Bezier(trans(...harpoon.map((val, i) => i % 2 === 0 ? val + 4.5 : val))),
+            new Bezier(trans(...harpoon.map((val, i) => i % 2 === 0 ? val + 4.5 : -val)))
         ];
         case 'hook': return [
-            new Bezier(rotateCoordinates(...hook))
+            new Bezier(trans(...hook))
         ];
         case 'hook-': return [
-            new Bezier(rotateCoordinates(...hook.map((val, i) => i % 2 === 0 ? val : -val)))
+            new Bezier(trans(...hook.map((val, i) => i % 2 === 0 ? val : -val)))
         ];
         case 'bar': return [
-            new Bezier(rotateCoordinates(...bar))
+            new Bezier(trans(...bar))
         ];
         case 'Bar': return [
-            new Bezier(rotateCoordinates(...Bar))
+            new Bezier(trans(...Bar))
         ];
         case 'none': return [];
     }
@@ -343,6 +344,91 @@ export function absoluteElementToBox(element, heightScale, widthScale, margin) {
         top: scaledHeight - scaledBottom + margin,
         bottom: scaledBottom + margin
     };
+}
+export function piecesToSquiggle(pieces) {
+    let totalLength = 0;
+    const parts = [];
+    for (const bezier of pieces) {
+        const length = bezier.length();
+        if (length > 0) {
+            totalLength += length;
+            parts.push({
+                length,
+                bezier
+            });
+        }
+    }
+    if (totalLength < 2 * squigglePeriod || parts.length === 0) {
+        return pieces;
+    }
+    const coordinateGap = squigglePeriod / 2;
+    const coordinateNum = Math.floor(totalLength / coordinateGap) - 1;
+    const minCoordinateLength = coordinateGap;
+    const maxCoordinateLength = coordinateNum * coordinateGap;
+    const out = [];
+    let targetCoordinateIndex = 0;
+    let coordinate;
+    let currentLength = 0;
+    for (const { length, bezier } of parts) {
+        const nextLength = currentLength + length;
+        if (currentLength < minCoordinateLength) {
+            if (nextLength <= minCoordinateLength) {
+                out.push(bezier);
+            }
+            else {
+                out.push(bezier.split(0, (minCoordinateLength - currentLength) / length));
+            }
+        }
+        if (targetCoordinateIndex < coordinateNum) {
+            while (true) {
+                const targetLength = (targetCoordinateIndex + 1) * coordinateGap;
+                if (targetLength > nextLength) {
+                    break;
+                }
+                const newCoordinate = bezier.get((targetLength - currentLength) / length);
+                if (coordinate !== undefined) {
+                    const dx = newCoordinate.x - coordinate.x;
+                    const dy = newCoordinate.y - coordinate.y;
+                    const subLength = Math.sqrt(dx ** 2 + dy ** 2);
+                    if (subLength > 0) {
+                        const d = {
+                            x: dx / subLength,
+                            y: dy / subLength
+                        };
+                        const mid = {
+                            x: (coordinate.x + newCoordinate.x) / 2,
+                            y: (coordinate.y + newCoordinate.y) / 2
+                        };
+                        if (targetCoordinateIndex % 2 === 1) {
+                            mid.x += d.y * twoArrowBodyShift;
+                            mid.y -= d.x * twoArrowBodyShift;
+                        }
+                        else {
+                            mid.x -= d.y * twoArrowBodyShift;
+                            mid.y += d.x * twoArrowBodyShift;
+                        }
+                        out.push(new Bezier(coordinate.x, coordinate.y, (coordinate.x + mid.x) / 2, (coordinate.y + mid.y) / 2, mid.x, mid.y));
+                        out.push(new Bezier(mid.x, mid.y, (mid.x + newCoordinate.x) / 2, (mid.y + newCoordinate.y) / 2, newCoordinate.x, newCoordinate.y));
+                    }
+                }
+                coordinate = newCoordinate;
+                targetCoordinateIndex++;
+                if (targetCoordinateIndex === coordinateNum) {
+                    break;
+                }
+            }
+        }
+        if (nextLength > maxCoordinateLength) {
+            if (currentLength >= maxCoordinateLength) {
+                out.push(bezier);
+            }
+            else {
+                out.push(bezier.split((maxCoordinateLength - currentLength) / length, 1));
+            }
+        }
+        currentLength = nextLength;
+    }
+    return out;
 }
 export const cd = async (unit, compiler) => {
     const gap = parseGap(unit.options.gap);
@@ -579,12 +665,6 @@ export const cd = async (unit, compiler) => {
         let ymin = 0;
         let xmax = getCoordinate({ row: 0, column: columnWidths.length }).x;
         let ymax = getCoordinate({ row: rowHeights.length, column: 0 }).y;
-        function drawCurve(curve, shift, g) {
-            const pieces = curve.offset(-shift);
-            if (Array.isArray(pieces)) {
-                drawPieces(pieces, g);
-            }
-        }
         function drawPieces(pieces, g) {
             const drawArray = [];
             for (const piece of pieces) {
@@ -612,6 +692,18 @@ export const cd = async (unit, compiler) => {
             path.style.strokeWidth = arrowWidth + 'px';
             path.style.fill = 'none';
             g.append(path);
+        }
+        function drawBezier(bezier, shift, g) {
+            const pieces = bezier.offset(-shift);
+            if (Array.isArray(pieces)) {
+                drawPieces(pieces, g);
+            }
+        }
+        function drawBezierToSquiggle(bezier, shift, g) {
+            const pieces = bezier.offset(-shift);
+            if (Array.isArray(pieces)) {
+                drawPieces(piecesToSquiggle(pieces), g);
+            }
         }
         for (const { from, to, out, in: arrowIn, bend, head, tail, shift, body, class: classStr, style, labels } of orderedArrows) {
             let fromCoordinate;
@@ -727,7 +819,7 @@ export const cd = async (unit, compiler) => {
                 x: end.x + endD.x * length / 3 * endStrength,
                 y: end.y + endD.y * length / 3 * endStrength
             };
-            const curve = new Bezier(start.x, start.y, startControl.x, startControl.y, endControl.x, endControl.y, end.x, end.y);
+            const bezier = new Bezier(start.x, start.y, startControl.x, startControl.y, endControl.x, endControl.y, end.x, end.y);
             const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             try {
                 g.setAttribute('class', classStr);
@@ -743,11 +835,14 @@ export const cd = async (unit, compiler) => {
             }
             svg.append(g);
             if (body === 'two') {
-                drawCurve(curve, shift + twoArrowBodyShift, g);
-                drawCurve(curve, shift - twoArrowBodyShift, g);
+                drawBezier(bezier, shift + twoArrowBodyShift, g);
+                drawBezier(bezier, shift - twoArrowBodyShift, g);
+            }
+            else if (body === 'squiggle') {
+                drawBezierToSquiggle(bezier, shift, g);
             }
             else {
-                drawCurve(curve, shift, g);
+                drawBezier(bezier, shift, g);
             }
             {
                 const base = {
@@ -770,10 +865,10 @@ export const cd = async (unit, compiler) => {
                 }
             }
             for (const { at, shift: labelShift, id } of labels) {
-                const root = curve.get(at);
-                const normal = curve.normal(at);
+                const root = bezier.get(at);
+                const normal = bezier.normal(at);
                 let allShift = shift + labelShift;
-                if (body === 'two' && labelShift !== 0) {
+                if ((body === 'two' || body === 'squiggle') && labelShift !== 0) {
                     allShift += twoArrowBodyShift * Math.sign(labelShift);
                 }
                 const base = {

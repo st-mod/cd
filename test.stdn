@@ -215,6 +215,18 @@
         &
         B
     ]}
+    {CD [
+        A
+        {bend, body squiggle, head two, tail tail, ar []}
+        &
+        B
+    ]}
+    {CD [
+        A
+        {bend, body squiggle, head tail, tail two, ar []}
+        &
+        B
+    ]}
 ]}]}
 []
 {gap 1.2 -, CD [

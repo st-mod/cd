@@ -2,7 +2,7 @@ import { UnitCompiler } from '@ddu6/stc';
 import { STDN, STDNUnit, STDNUnitOptions } from 'stdn';
 import { Bezier } from 'bezier-js';
 export declare type ArrowMark = 'arrow' | 'Arrow' | 'bar' | 'Bar' | 'harpoon' | 'harpoon-' | 'hook' | 'hook-' | 'tail' | 'two' | 'none';
-export declare type ArrowBody = 'two' | 'one';
+export declare type ArrowBody = 'one' | 'two' | 'squiggle';
 export interface Cell {
     children: STDN;
     id: string;
@@ -72,5 +72,6 @@ export declare function createArrowMark(mark: ArrowMark, d: Coordinate, base: Co
 export declare function createAbsoluteElement(content: Node, parent: HTMLDivElement): AbsoluteElement;
 export declare function placeAbsoluteElement(element: AbsoluteElement, coordinate: Coordinate): void;
 export declare function absoluteElementToBox(element: AbsoluteElement, heightScale: number, widthScale: number, margin: number): Box;
+export declare function piecesToSquiggle(pieces: Bezier[]): Bezier[];
 export declare const cd: UnitCompiler;
 export declare const CD: UnitCompiler;
