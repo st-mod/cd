@@ -983,6 +983,13 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
                 drawArray.push(...drawBezierToSquiggle(bezier,shift,g))
             }else{
                 drawArray.push(...drawBezier(bezier,shift,g))
+                const placeHolder=document.createElementNS('http://www.w3.org/2000/svg','rect')
+                placeHolder.setAttribute('x','0')
+                placeHolder.setAttribute('y','0')
+                placeHolder.setAttribute('width',arrowWidth.toString())
+                placeHolder.setAttribute('height',arrowWidth.toString())
+                placeHolder.style.stroke=placeHolder.style.fill='none'
+                g.append(placeHolder)
             }
             {
                 const base:Coordinate={
