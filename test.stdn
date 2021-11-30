@@ -257,6 +257,18 @@
 []
 {CD [
     A
+    {tail tail, ar []}
+    {to 1 1, ar []}
+    &
+    B
+    {to 0 1, head two, ar []}
+    \\
+    &
+    D
+]}
+[]
+{CD [
+    A
     {to z, style color:var(--color-warn), ar []}
     {to 1 1, style color:var(--color-modifier), ar []}
     &
