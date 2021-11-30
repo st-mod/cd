@@ -371,7 +371,7 @@ export function createAbsoluteElement(content:Node,parent:HTMLDivElement):Absolu
     topControler.style.display='inline-block'
     container.style.display='inline-block'
     container.style.verticalAlign='-0.5ex'
-    container.style.whiteSpace='pre'
+    container.style.width='max-content'
     parent.append(leftControler)
     leftControler.append(centerDiv)
     centerDiv.append(topControler)
@@ -531,7 +531,7 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
             orderedArrows.push(arrow)
             for(const {unit,id} of arrow.labels){
                 const labelElement=createAbsoluteElement(await compiler.compileUnit(unit),element)
-                if(unit.options['non-label']!==true){
+                if(unit.options['normal-font-size']!==true){
                     labelElement.container.style.fontSize='var(--length-font-log)'
                 }
                 idToLabelElement[id]=labelElement
