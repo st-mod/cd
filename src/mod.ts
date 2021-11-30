@@ -350,10 +350,6 @@ export function createArrowMark(mark:ArrowMark,d:Coordinate,base:Coordinate):Bez
         case 'none':return []
     }
 }
-export function placeAbsoluteElement(element:AbsoluteElement,coordinate:Coordinate){
-    element.leftControler.style.left=coordinate.x+'em'
-    element.topControler.style.height=coordinate.y+'em'
-}
 export function createAbsoluteElement(content:Node,parent:HTMLDivElement):AbsoluteElement{
     const leftControler=document.createElement('div')
     const centerDiv=document.createElement('div')
@@ -363,8 +359,11 @@ export function createAbsoluteElement(content:Node,parent:HTMLDivElement):Absolu
     leftControler.style.top='0'
     leftControler.style.width='0'
     leftControler.style.display='flex'
+    leftControler.style.justifyContent='center'
     topControler.style.display='inline-block'
     container.style.display='inline-block'
+    container.style.verticalAlign='-0.5ex'
+    container.style.whiteSpace='pre'
     parent.append(leftControler)
     leftControler.append(centerDiv)
     centerDiv.append(topControler)
@@ -375,6 +374,10 @@ export function createAbsoluteElement(content:Node,parent:HTMLDivElement):Absolu
         topControler,
         container
     }
+}
+export function placeAbsoluteElement(element:AbsoluteElement,coordinate:Coordinate){
+    element.leftControler.style.left=coordinate.x+'em'
+    element.topControler.style.height=coordinate.y+'em'
 }
 export const cd:UnitCompiler=async (unit,compiler)=>{
     const gap=parseGap(unit.options.gap)
@@ -506,7 +509,7 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
             for(const {unit,id} of arrow.labels){
                 const labelElement=createAbsoluteElement(await compiler.compileUnit(unit),element)
                 if(unit.options['non-label']!==true){
-                    labelElement.container.classList.add('label')
+                    labelElement.container.style.fontSize='var(--length-font-log)'
                 }
                 idToLabelElement[id]=labelElement
                 idSet[id]=true
