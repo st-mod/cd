@@ -323,6 +323,20 @@ export function placeAbsoluteElement(element, coordinate) {
     element.leftControler.style.left = coordinate.x + 'em';
     element.topControler.style.height = coordinate.y + 'em';
 }
+export function absoluteElementToBox(element, heightScale, widthScale) {
+    const { height, width } = element.container.getBoundingClientRect();
+    const scaledHeight = height * heightScale + 2 * cellMargin;
+    const scaledWidth = width * widthScale + 2 * cellMargin;
+    element.topControler.style.height = scaledHeight + 'em';
+    const { top } = element.container.getBoundingClientRect();
+    const scaledBottom = top * heightScale;
+    return {
+        height: scaledHeight,
+        width: scaledWidth,
+        top: scaledHeight - scaledBottom,
+        bottom: scaledBottom
+    };
+}
 export const cd = async (unit, compiler) => {
     const gap = parseGap(unit.options.gap);
     const element = document.createElement('div');
@@ -476,22 +490,16 @@ export const cd = async (unit, compiler) => {
         const positionToBox = {};
         const idToBox = {};
         for (const { element, position, id } of cellElements) {
-            const { height, width } = element.container.getBoundingClientRect();
-            const scaledHeight = height * heightScale + 2 * cellMargin;
-            const scaledWidth = width * widthScale + 2 * cellMargin;
-            const box = {
-                height: scaledHeight,
-                width: scaledWidth
-            };
+            const box = absoluteElementToBox(element, heightScale, widthScale);
             positionToBox[position.row + ' ' + position.column] = box;
             if (id.length > 0) {
                 idToBox[id] = box;
             }
-            if ((rowHeights[position.row] ?? 0) < scaledHeight) {
-                rowHeights[position.row] = scaledHeight;
+            if ((rowHeights[position.row] ?? 0) < box.height) {
+                rowHeights[position.row] = box.height;
             }
-            if ((columnWidths[position.column] ?? 0) < scaledWidth) {
-                columnWidths[position.column] = scaledWidth;
+            if ((columnWidths[position.column] ?? 0) < box.width) {
+                columnWidths[position.column] = box.width;
             }
         }
         function getCoordinate(position) {
@@ -607,7 +615,7 @@ export const cd = async (unit, compiler) => {
                 fromCoordinate = getCoordinate(from);
                 const box = positionToBox[from.row + ' ' + from.column];
                 if (box === undefined) {
-                    fromBox = { height: 0, width: 0 };
+                    fromBox = { height: 0, width: 0, top: 0, bottom: 0 };
                 }
                 else {
                     fromBox = box;
@@ -626,7 +634,7 @@ export const cd = async (unit, compiler) => {
                 toCoordinate = getCoordinate(to);
                 const box = positionToBox[to.row + ' ' + to.column];
                 if (box === undefined) {
-                    toBox = { height: 0, width: 0 };
+                    toBox = { height: 0, width: 0, top: 0, bottom: 0 };
                 }
                 else {
                     toBox = box;
@@ -770,13 +778,7 @@ export const cd = async (unit, compiler) => {
                 if (labelElement === undefined) {
                     throw new Error();
                 }
-                const { height, width } = labelElement.container.getBoundingClientRect();
-                const scaledHeight = height * heightScale + 2 * labelMargin;
-                const scaledWidth = width * widthScale + 2 * labelMargin;
-                const box = {
-                    height: scaledHeight,
-                    width: scaledWidth
-                };
+                const box = absoluteElementToBox(labelElement, heightScale, widthScale);
                 idToBox[id] = box;
                 const xmin0 = base.x - box.width / 2;
                 const xmax0 = base.x + box.width / 2;
