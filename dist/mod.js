@@ -209,27 +209,33 @@ export function getEdgePoint(angle, base, box) {
     if (angle === 90) {
         return {
             x: base.x,
-            y: base.y - box.height / 2
+            y: base.y - box.top
         };
     }
     if (angle === 270) {
         return {
             x: base.x,
-            y: base.y + box.height / 2
+            y: base.y + box.bottom
         };
     }
     const k = Math.abs(Math.tan(angle / 180 * Math.PI));
-    const x = Math.min(box.width, box.height / k) / 2;
-    const y = Math.min(box.height, box.width * k) / 2;
     if (angle < 90) {
+        const x = Math.min(box.width / 2, box.top / k);
+        const y = Math.min(box.top, box.width * k / 2);
         return { x: base.x + x, y: base.y - y };
     }
     if (angle < 180) {
+        const x = Math.min(box.width / 2, box.top / k);
+        const y = Math.min(box.top, box.width * k / 2);
         return { x: base.x - x, y: base.y - y };
     }
     if (angle < 270) {
+        const x = Math.min(box.width / 2, box.bottom / k);
+        const y = Math.min(box.bottom, box.width * k / 2);
         return { x: base.x - x, y: base.y + y };
     }
+    const x = Math.min(box.width / 2, box.bottom / k);
+    const y = Math.min(box.bottom, box.width * k / 2);
     return { x: base.x + x, y: base.y + y };
 }
 const harpoon = [5.4, 6.5, 4.8, 3, 2, 1, 0, 0];
@@ -323,18 +329,19 @@ export function placeAbsoluteElement(element, coordinate) {
     element.leftControler.style.left = coordinate.x + 'em';
     element.topControler.style.height = coordinate.y + 'em';
 }
-export function absoluteElementToBox(element, heightScale, widthScale) {
+export function absoluteElementToBox(element, heightScale, widthScale, margin) {
     const { height, width } = element.container.getBoundingClientRect();
-    const scaledHeight = height * heightScale + 2 * cellMargin;
-    const scaledWidth = width * widthScale + 2 * cellMargin;
+    const scaledHeight = height * heightScale;
+    const scaledWidth = width * widthScale;
     element.topControler.style.height = scaledHeight + 'em';
+    const { top: baseTop } = element.topControler.getBoundingClientRect();
     const { top } = element.container.getBoundingClientRect();
-    const scaledBottom = top * heightScale;
+    const scaledBottom = (top - baseTop) * heightScale;
     return {
-        height: scaledHeight,
-        width: scaledWidth,
-        top: scaledHeight - scaledBottom,
-        bottom: scaledBottom
+        height: scaledHeight + 2 * margin,
+        width: scaledWidth + 2 * margin,
+        top: scaledHeight - scaledBottom + margin,
+        bottom: scaledBottom + margin
     };
 }
 export const cd = async (unit, compiler) => {
@@ -490,7 +497,7 @@ export const cd = async (unit, compiler) => {
         const positionToBox = {};
         const idToBox = {};
         for (const { element, position, id } of cellElements) {
-            const box = absoluteElementToBox(element, heightScale, widthScale);
+            const box = absoluteElementToBox(element, heightScale, widthScale, cellMargin);
             positionToBox[position.row + ' ' + position.column] = box;
             if (id.length > 0) {
                 idToBox[id] = box;
@@ -778,12 +785,12 @@ export const cd = async (unit, compiler) => {
                 if (labelElement === undefined) {
                     throw new Error();
                 }
-                const box = absoluteElementToBox(labelElement, heightScale, widthScale);
+                const box = absoluteElementToBox(labelElement, heightScale, widthScale, labelMargin);
                 idToBox[id] = box;
                 const xmin0 = base.x - box.width / 2;
                 const xmax0 = base.x + box.width / 2;
-                const ymin0 = base.y - box.height / 2;
-                const ymax0 = base.y + box.height / 2;
+                const ymin0 = base.y - box.top;
+                const ymax0 = base.y + box.bottom;
                 if (xmin0 < xmin) {
                     xmin = xmin0;
                 }

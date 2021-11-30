@@ -71,6 +71,6 @@ export declare function getEdgePoint(angle: number, base: Coordinate, box: Box):
 export declare function createArrowMark(mark: ArrowMark, d: Coordinate, base: Coordinate): Bezier[];
 export declare function createAbsoluteElement(content: Node, parent: HTMLDivElement): AbsoluteElement;
 export declare function placeAbsoluteElement(element: AbsoluteElement, coordinate: Coordinate): void;
-export declare function absoluteElementToBox(element: AbsoluteElement, heightScale: number, widthScale: number): Box;
+export declare function absoluteElementToBox(element: AbsoluteElement, heightScale: number, widthScale: number, margin: number): Box;
 export declare const cd: UnitCompiler;
 export declare const CD: UnitCompiler;
