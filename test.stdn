@@ -133,85 +133,85 @@
 {frame [{two [
     {CD [
         A
-        {ar []}
+        {bend, ar []}
         &
         B
     ]}
     {CD [
         A
-        {head none, tail arrow, ar []}
+        {bend, head none, tail arrow, ar []}
         &
         B
     ]}
     {CD [
         A
-        {body two, ar []}
+        {bend, body two, ar []}
         &
         B
     ]}
     {CD [
         A
-        {body two, head none, tail arrow, ar []}
+        {bend, body two, head none, tail arrow, ar []}
         &
         B
     ]}
     {CD [
         A
-        {tail bar, ar []}
+        {bend, tail bar, ar []}
         &
         B
     ]}
     {CD [
         A
-        {head bar, tail arrow, ar []}
+        {bend, head bar, tail arrow, ar []}
         &
         B
     ]}
     {CD [
         A
-        {body two, tail bar, ar []}
+        {bend, body two, tail bar, ar []}
         &
         B
     ]}
     {CD [
         A
-        {body two, head bar, tail arrow, ar []}
+        {bend, body two, head bar, tail arrow, ar []}
         &
         B
     ]}
     {CD [
         A
-        {head harpoon, tail hook, ar []}
+        {bend, head harpoon, tail hook, ar []}
         &
         B
     ]}
     {CD [
         A
-        {head hook, tail harpoon, ar []}
+        {bend, head hook, tail harpoon, ar []}
         &
         B
     ]}
     {CD [
         A
-        {head harpoon-, tail hook-, ar []}
+        {bend, head harpoon-, tail hook-, ar []}
         &
         B
     ]}
     {CD [
         A
-        {head hook-, tail harpoon-, ar []}
+        {bend, head hook-, tail harpoon-, ar []}
         &
         B
     ]}
     {CD [
         A
-        {head two, tail tail, ar []}
+        {bend, head two, tail tail, ar []}
         &
         B
     ]}
     {CD [
         A
-        {head tail, tail two, ar []}
+        {bend, head tail, tail two, ar []}
         &
         B
     ]}
