@@ -14,10 +14,14 @@
     stroke-dasharray: .06 .12;
 }
 
-.unit.cd>div>div>div>* {
+.unit.cd>div {
+    justify-content: center;
+}
+
+.unit.cd>div>div>div:last-child {
     vertical-align: -0.5ex;
 }
 
-.unit.cd>div>div>div.label>* {
+.unit.cd>div>div>div:last-child.label {
     font-size: var(--length-font-log);
 }

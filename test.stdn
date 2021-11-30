@@ -182,7 +182,7 @@
     A
     {ar []}
     {to 0 1, ar []}
-    {to 1 1, class transparent, ar [{at 0.1, shift 0, style font-size:1em, '\ulcorner'}]}
+    {to 1 1, class transparent, ar [{at 0.1, shift 0, non-label, '\ulcorner'}]}
     &
     B
     {to 0 1, ar []}
@@ -253,7 +253,7 @@
 []
 {gap - 2.7, CD [
     []
-    {class transparent, ar [{shift 0, style font-size:1em, 'X\otimes(Y\otimes(Z\otimes T))'}]}
+    {class transparent, ar [{shift 0, non-label, 'X\otimes(Y\otimes(Z\otimes T))'}]}
     \\
     X\otimes((Y\otimes Z)\otimes T))
     {from 0.3 -0.7, to 0, ar [{shift -0.8, '1\otimes\phi'}]}
@@ -271,7 +271,7 @@
 []
 {gap 3.6 -, CD [
     A\oplus B
-    {ar [{pmatrix [
+    {ar [{shift 1, pmatrix [
         e & f\\
         g & h
     ]}]}

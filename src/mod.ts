@@ -363,7 +363,6 @@ export function createAbsoluteElement(content:Node,parent:HTMLDivElement):Absolu
     leftControler.style.top='0'
     leftControler.style.width='0'
     leftControler.style.display='flex'
-    leftControler.style.justifyContent='center'
     topControler.style.display='inline-block'
     container.style.display='inline-block'
     parent.append(leftControler)
@@ -506,7 +505,9 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
             orderedArrows.push(arrow)
             for(const {unit,id} of arrow.labels){
                 const labelElement=createAbsoluteElement(await compiler.compileUnit(unit),element)
-                labelElement.container.classList.add('label')
+                if(unit.options['non-label']!==true){
+                    labelElement.container.classList.add('label')
+                }
                 idToLabelElement[id]=labelElement
                 idSet[id]=true
             }
@@ -890,7 +891,6 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
                 }
             }
             html=nhtml
-            console.log('test')
             await new Promise(r=>setTimeout(r,1000))
         }
     })
