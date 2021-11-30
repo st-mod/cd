@@ -14,6 +14,10 @@
     stroke-dasharray: .06 .12;
 }
 
-.unit.cd>div>div>div.label {
+.unit.cd>div>div>div>* {
+    vertical-align: -0.5ex;
+}
+
+.unit.cd>div>div>div.label>* {
     font-size: var(--length-font-log);
 }

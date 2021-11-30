@@ -6,8 +6,8 @@
     &
     \cdots
     \\
-    {from 2 -1, to 0, out 0, in 180, class dashed, ar []}
     H_n(A)
+    {from 2 -1, to 0, out 0, in 180, class dashed, ar []}
     {ar, 'i_*'}
     &
     H_n(X)
@@ -27,3 +27,255 @@
     \\
     \cdots
 ]}]}]}
+[]
+{CD [
+    A
+    {ar, '\phi'}
+    {to 0 1, style color:var(--color-warn), ar []}
+    &
+    B
+    {to 0 1, ar [{style color:var(--color-warn), '\psi'}]}
+    \\
+    C
+    {style color:var(--color-warn), ar [{style color:var(--color-modifier), '\eta'}]}
+    &
+    {style color:var(--color-modifier); display:inline-block; transform:rotate(15deg), 'D'}
+]}
+[]
+{CD [
+    A
+    {ar [
+        {at 0.3, '\phi'}
+        {shift -0.8, '\psi'}
+        {at 0.7, '\eta'}
+    ]}
+    &
+    B
+]}
+[]
+{CD [
+    T
+    {to 2 1, bend, ar, 'x'}
+    {to 1 2, bend -30, ar, 'y'}
+    {to 1 1, class dotted, ar [{shift 0, '(x,y)'}]}
+    \\
+    &
+    X\times_Z Y
+    {ar, 'p'}
+    {to 0 1, ar, 'q'}
+    &
+    X
+    {to 0 1, ar, 'f'}
+    \\
+    &
+    Y
+    {ar, 'g'}
+    &
+    Z
+]}
+[]
+{CD [
+    &
+    \pi_1(U_1)
+    {to 1 1, ar []}
+    {to 2 1, bend 20, ar, 'j_1'}
+    \\
+    \pi_1(U_1\cap U_2)
+    {to 1 -1, ar, 'i_1'}
+    {to 1 1, ar, 'i_2'}
+    &
+    &
+    '\pi_1(U_1)\ast_{\pi_1(U_1\cap U_2)}\pi_1(U_2)'
+    {class dashed, ar, '\simeq'}
+    &
+    \pi_1(X)
+    \\
+    &
+    \pi_1(U_2)
+    {to 1 -1, ar []}
+    {to 2 -1, bend -20, ar, 'j_2'}
+]}
+[]
+{CD [
+    X
+    {tail hook, ar []}
+    {to 1 1, class dashed, ar []}
+    &
+    \bar X
+    {to 0 1, ar []}
+    \\
+    &
+    Y
+]}
+[]
+{CD [
+    A
+    {tail tail, head two, class dashed, ar []}
+    &
+    B
+]}
+[]
+{gap 1.2 -, CD [
+    &
+    A
+    {to -1 1, ar []}
+    {to 1 1, ar []}
+    \\
+    B
+    {to 2, ar []}
+    &
+    &
+    C
+]}
+[]
+{gap - .45, CD [
+    &
+    B
+    {to 0 2, ar []}
+    \\
+    A
+    {to 1 -1, ar []}
+    {to 1 1, ar []}
+    \\
+    &
+    C
+]}
+[]
+{CD [
+    A
+    {to z, style color:var(--color-warn), ar []}
+    {to 1 1, style color:var(--color-modifier), ar []}
+    &
+    B
+    \\
+    {class hide, 'Z'}
+    C
+    &
+    D
+    {from -1 -1, to 0 -1, style color:var(--color-keyword), ar []}
+]}
+[]
+{gap 1.8 -, CD [
+    A
+    {to 1 1, ar []}
+    {to 2, ar [{cd-id u, shift 0}]}
+    &
+    &
+    B
+    {to -1 1, ar []}
+    \\
+    &
+    C
+    {from u, to 0, body two, ar, '\psi'}
+]}
+[]
+{CD [
+    A
+    {bend 50, ar [{cd-id u, shift 0}]}
+    {bend -50, ar [{cd-id d, shift 0}]}
+    &
+    B
+    {from u, to d, body two, ar []}
+]}
+[]
+{CD [
+    A
+    {ar []}
+    {to 0 1, ar []}
+    {to 1 1, class transparent, ar [{at 0.1, shift 0, style font-size:1em, '\ulcorner'}]}
+    &
+    B
+    {to 0 1, ar []}
+    \\
+    C
+    {ar []}
+    &
+    D
+]}
+[]
+{CD [
+    A
+    {shift, style color:var(--color-warn), ar []}
+    {ar []}
+    {to 1 1, shift -0.24, style color:var(--color-modifier), ar []}
+    {to 1 1, ar []}
+    &
+    B
+    {to 0 1, shift, style color:var(--color-keyword), ar []}
+    {to 0 1, ar []}
+    \\
+    &
+    C
+]}
+[]
+{CD [
+    A
+    {ar [{shift 0, '/'}]}
+    {to 1 1, ar [{shift 0, '\circ'}]}
+    &
+    B
+    \\
+    &
+    C
+]}
+[]
+{CD [
+    A
+    {to 1 1, out 30 2, in 120 2, ar []}
+    {to 0 1, head none, class dashed, ar []}
+    \\
+    {class dashed, ar []}
+    &
+    B
+    {to 0, out 30 5, in -30 5, ar []}
+]}
+[]
+{CD [
+    A
+    {ar []}
+    &
+    B
+    {ar []}
+    &
+    C
+    {to 1 .5, out 0 2, in 0 2, head none, ar []}
+    {from 1 .5, to -3 .5, out 180, in 0, head none, ar [{at 0.1, '\delta'}]}
+    {from -3 .5, to -2 1, out 180 2, in 180 2, ar []}
+    \\
+    D
+    {ar []}
+    &
+    E
+    {ar []}
+    &
+    F
+]}
+[]
+{gap - 2.7, CD [
+    []
+    {class transparent, ar [{shift 0, style font-size:1em, 'X\otimes(Y\otimes(Z\otimes T))'}]}
+    \\
+    X\otimes((Y\otimes Z)\otimes T))
+    {from 0.3 -0.7, to 0, ar [{shift -0.8, '1\otimes\phi'}]}
+    {to 0.2 0.7, ar [{shift -0.8, '\phi'}]}
+    &
+    (X\otimes Y)\otimes(Z\otimes T)
+    {from -0.3 -0.7, to 0, ar, '\phi'}
+    {to -0.2 0.7, ar, '\phi'}
+    \\
+    (X\otimes(Y\otimes Z))\otimes T
+    {ar, '\phi\otimes1'}
+    &
+    ((X\otimes Y)\otimes Z)\otimes T
+]}
+[]
+{gap 3.6 -, CD [
+    A\oplus B
+    {ar [{pmatrix [
+        e & f\\
+        g & h
+    ]}]}
+    &
+    C\oplus D
+]}
+[]

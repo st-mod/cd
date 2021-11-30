@@ -62,7 +62,7 @@ export declare function parseControl(option: STDNUnitOptions[string]): Control |
 export declare function parseArrowShift(option: STDNUnitOptions[string]): number;
 export declare function parseArrowBody(option: STDNUnitOptions[string]): ArrowBody;
 export declare function parseArrowMark(option: STDNUnitOptions[string], at: 'head' | 'tail', body: ArrowBody): ArrowMark;
-export declare function extractLabels(unit: STDNUnit, baseIdToCount: BaseIdToCount): Label[];
+export declare function extractLabels(children: STDN, tag: string, baseIdToCount: BaseIdToCount): Label[];
 export declare function angleToD(angle: number): Coordinate;
 export declare function dToAngle(d: Coordinate): number;
 export declare function getEdgePoint(angle: number, base: Coordinate, box: Box): Coordinate;

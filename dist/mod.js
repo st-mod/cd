@@ -3,7 +3,7 @@ import { Bezier } from 'bezier-js';
 const arrowWidth = .04;
 const arrowBigMarkMargin = 4 * arrowWidth;
 const twoArrowBodyShift = 2.5 * arrowWidth;
-const defaultLabelShift = .6;
+const defaultLabelShift = .8;
 const defaultArrowShift = 6 * arrowWidth;
 const defaultBendAngle = 30;
 const defaultRowGap = 1.8;
@@ -121,14 +121,14 @@ export function parseArrowMark(option, at, body) {
     }
     return at === 'tail' ? 'none' : body === 'two' ? 'Arrow' : 'arrow';
 }
-export function extractLabels(unit, baseIdToCount) {
+export function extractLabels(children, tag, baseIdToCount) {
     const labels = [];
     const main = {
-        tag: unit.tag === 'katex' ? unit.tag : 'div',
+        tag: tag === 'katex' ? tag : 'div',
         options: {},
         children: []
     };
-    for (const line of unit.children) {
+    for (const line of children) {
         if (line.length === 0) {
             main.children.push(line);
             continue;
@@ -163,12 +163,8 @@ export function extractLabels(unit, baseIdToCount) {
         }
         main.children.push(line);
     }
-    let baseId = unit.options['cd-id'];
-    if (typeof baseId !== 'string') {
-        baseId = stdnToInlinePlainString(main.children);
-    }
-    baseId = stringToId(baseId);
-    if (main.children.length > 0 || baseId.length > 0) {
+    if (main.children.length > 0) {
+        const baseId = stringToId(stdnToInlinePlainString(main.children));
         const count = baseIdToCount[baseId] = (baseIdToCount[baseId] ?? 0) + 1;
         const id = count > 1 || baseId.length === 0 ? `${baseId}~${count}` : baseId;
         labels.push({
@@ -314,7 +310,6 @@ export function createAbsoluteElement(content, parent) {
     leftControler.style.justifyContent = 'center';
     topControler.style.display = 'inline-block';
     container.style.display = 'inline-block';
-    container.style.verticalAlign = '-0.5ex';
     parent.append(leftControler);
     leftControler.append(centerDiv);
     centerDiv.append(topControler);
@@ -333,7 +328,8 @@ export const cd = async (unit, compiler) => {
     element.classList.add('cd');
     element.style.position = 'relative';
     svg.style.position = 'absolute';
-    svg.style.display = 'block';
+    svg.style.left = '0';
+    svg.style.top = '0';
     element.append(svg);
     let cell = {
         children: [],
@@ -373,7 +369,7 @@ export const cd = async (unit, compiler) => {
                     column: row.length - 1
                 };
                 const body = parseArrowBody(first.options.body);
-                const labels = extractLabels(first, baseIdToCount);
+                const labels = extractLabels(first.children, first.tag, baseIdToCount);
                 arrows.push({
                     from: parsePosition(first.options.from, 'from', base),
                     to: parsePosition(first.options.to, 'to', base),
@@ -495,8 +491,8 @@ export const cd = async (unit, compiler) => {
             }
         }
         function getCoordinate(position) {
-            let x = (columnWidths[0] ?? 0) / 2;
-            let y = (rowHeights[0] ?? 0) / 2;
+            let x = position.column >= 0 ? (columnWidths[0] ?? 0) / 2 : 0;
+            let y = position.row >= 0 ? (rowHeights[0] ?? 0) / 2 : 0;
             for (let i = 1; i <= position.column; i++) {
                 const right = columnWidths[i - 1];
                 const left = columnWidths[i];
@@ -693,12 +689,12 @@ export const cd = async (unit, compiler) => {
                 endStrength = arrowIn.strength;
             }
             if (head === 'Arrow' || head === 'hook' || head === 'hook-' || head === 'tail') {
-                start.x = start.x + startD.x * arrowBigMarkMargin;
-                start.y = start.y + startD.y * arrowBigMarkMargin;
-            }
-            if (tail === 'Arrow' || tail === 'hook' || tail === 'hook-' || tail === 'tail') {
                 end.x = end.x + endD.x * arrowBigMarkMargin;
                 end.y = end.y + endD.y * arrowBigMarkMargin;
+            }
+            if (tail === 'Arrow' || tail === 'hook' || tail === 'hook-' || tail === 'tail') {
+                start.x = start.x + startD.x * arrowBigMarkMargin;
+                start.y = start.y + startD.y * arrowBigMarkMargin;
             }
             const length = Math.sqrt((end.x - start.x) ** 2 + (end.y - start.y) ** 2);
             if (length === 0) {
