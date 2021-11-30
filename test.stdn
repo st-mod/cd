@@ -61,7 +61,7 @@
     A
     {ar [
         {at 0.3, '\phi'}
-        {shift -0.8, '\psi'}
+        {shift right, '\psi'}
         {at 0.7, '\eta'}
     ]}
     &
@@ -71,8 +71,8 @@
 {CD [
     T
     {to 2 1, bend, ar, 'x'}
-    {to 1 2, bend -30, ar, 'y'}
-    {to 1 1, class dotted, ar [{shift 0, '(x,y)'}]}
+    {to 1 2, bend right, ar, 'y'}
+    {to 1 1, class dotted, ar [{shift 0, clear, '(x,y)'}]}
     \\
     &
     X\times_Z Y
@@ -242,7 +242,7 @@
     C
 ]}
 []
-{gap - .45, CD [
+{gap - 0.45, CD [
     &
     B
     {to 0 2, ar []}
@@ -262,7 +262,7 @@
     &
     B
     \\
-    {class hide, 'Z'}
+    {class hide, 'z'}
     C
     &
     D
@@ -311,7 +311,7 @@
     A
     {shift, style color:var(--color-warn), ar []}
     {ar []}
-    {to 1 1, shift -0.24, style color:var(--color-modifier), ar []}
+    {to 1 1, shift right, style color:var(--color-modifier), ar []}
     {to 1 1, ar []}
     &
     B
@@ -324,6 +324,87 @@
 []
 {CD [
     A
+    {ar []}
+    &
+    B
+    {shift, ar []}
+    {shift right, ar []}
+    &
+    C
+    {shift 0.48, ar []}
+    {ar []}
+    {shift -0.48, ar []}
+    &
+    \cdots
+]}
+[]
+{cd [
+    {style border:1px solid var(--color-border); width:1.5em; text-align:center, div [{'A'}]}
+    {ar []}
+    {to 1.667 -0.667, style color:var(--color-modifier), ar []}
+    {to 2 -1, style color:var(--color-warn), ar []}
+    &
+    {style border:1px solid var(--color-border); width:1.5em; text-align:center, div [{'B'}]}
+]}
+[]
+{CD [
+    A
+    {shift, ar []}
+    {from 0.3, to 0.7, shift right, ar []}
+    &
+    B
+]}
+[]
+{CD [
+    A
+    {to 1 1, ar []}
+    &
+    B
+    {to -1 1, clear, ar []}
+    \\
+    C
+    &
+    D
+]}
+[]
+{CD [
+    &
+    f^* E_V
+    {to -1 1, ar []}
+    {to 2, ar []}
+    {to 0 2, ar []}
+    &
+    &
+    E_V
+    {to -1 1, ar []}
+    {to 0 2, ar []}
+    \\
+    f^* E
+    {to 0 2, ar []}
+    {to 2, clear, ar []}
+    &
+    &
+    E
+    \\
+    &
+    U
+    {to -1 1, ar []}
+    {to 2, ar []}
+    &
+    &
+    V
+    {to -1 1, ar []}
+    \\
+    M
+    {to 2, ar []}
+    &
+    &
+    N
+    {from 0 -2, to 0, clear, ar []}
+]}
+[]
+{CD [
+    A
     {ar [{shift 0, '/'}]}
     {to 1 1, ar [{shift 0, '\circ'}]}
     &
@@ -331,6 +412,13 @@
     \\
     &
     C
+]}
+[]
+{CD [
+    A
+    {ar [{shift 0, clear, '\phi'}]}
+    &
+    B
 ]}
 []
 {CD [
@@ -352,9 +440,9 @@
     {ar []}
     &
     C
-    {to 1 .5, out 0 2, in 0 2, head none, ar []}
-    {from 1 .5, to -3 .5, out 180, in 0, head none, ar [{at 0.1, '\delta'}]}
-    {from -3 .5, to -2 1, out 180 2, in 180 2, ar []}
+    {to 1 0.5, out 0 2, in 0 2, head none, ar []}
+    {from 1 0.5, to -3 0.5, out 180, in 0, head none, ar [{at 0.1, '\delta'}]}
+    {from -3 0.5, to -2 1, out 180 2, in 180 2, ar []}
     \\
     D
     {ar []}
@@ -370,8 +458,8 @@
     {class transparent, ar [{shift 0, normal-font-size, 'X\otimes(Y\otimes(Z\otimes T))'}]}
     \\
     X\otimes((Y\otimes Z)\otimes T))
-    {from 0.3 -0.7, to 0, ar [{shift -0.8, '1\otimes\phi'}]}
-    {to 0.2 0.7, ar [{shift -0.8, '\phi'}]}
+    {from 0.3 -0.7, to 0, ar [{shift right, '1\otimes\phi'}]}
+    {to 0.2 0.7, ar [{shift right, '\phi'}]}
     &
     (X\otimes Y)\otimes(Z\otimes T)
     {from -0.3 -0.7, to 0, ar, '\phi'}

@@ -3,13 +3,14 @@ import { Bezier } from 'bezier-js';
 const arrowWidth = .04;
 const arrowBigMarkMargin = 4 * arrowWidth;
 const twoArrowBodyShift = 2.5 * arrowWidth;
-const defaultLabelShift = .8;
 const defaultArrowShift = 6 * arrowWidth;
+const arrowClear = 12 * arrowWidth;
+const defaultLabelShift = .8;
 const defaultBendAngle = 30;
 const defaultRowGap = 1.8;
 const defaultColumnGap = 2.4;
 const cellMargin = .5;
-const labelMargin = .3;
+const labelMargin = arrowClear / 2;
 const squigglePeriod = .5;
 export function parseGap(option) {
     if (typeof option === 'number' && isFinite(option)) {
@@ -77,6 +78,12 @@ export function parseControl(option) {
             strength: 1
         };
     }
+    if (option === 'right') {
+        return {
+            angle: -defaultBendAngle,
+            strength: 1
+        };
+    }
     if (typeof option !== 'string') {
         return undefined;
     }
@@ -98,6 +105,9 @@ export function parseArrowShift(option) {
     }
     if (option === true) {
         return defaultArrowShift;
+    }
+    if (option === 'right') {
+        return -defaultArrowShift;
     }
     return 0;
 }
@@ -122,6 +132,18 @@ export function parseArrowMark(option, at, body) {
     }
     return at === 'tail' ? 'none' : body === 'two' ? 'Arrow' : 'arrow';
 }
+export function parseClear(option) {
+    if (option === true) {
+        return option;
+    }
+    if (typeof option === 'string') {
+        option = option.trim();
+        if (option.length > 0) {
+            return option.split(/\s+/);
+        }
+    }
+    return false;
+}
 export function extractLabels(children, tag, baseIdToCount) {
     const labels = [];
     const main = {
@@ -144,7 +166,10 @@ export function extractLabels(children, tag, baseIdToCount) {
             if (typeof at !== 'number' || at < 0 || at > 1) {
                 at = .5;
             }
-            if (typeof shift !== 'number' || !isFinite(shift)) {
+            if (shift === 'right') {
+                shift = -defaultLabelShift;
+            }
+            else if (typeof shift !== 'number' || !isFinite(shift)) {
                 shift = defaultLabelShift;
             }
             let baseId = first.options['cd-id'];
@@ -158,7 +183,8 @@ export function extractLabels(children, tag, baseIdToCount) {
                 at,
                 shift,
                 unit: first,
-                id
+                id,
+                clear: parseClear(first.options.clear)
             });
             continue;
         }
@@ -172,7 +198,8 @@ export function extractLabels(children, tag, baseIdToCount) {
             at: .5,
             shift: defaultLabelShift,
             unit: main,
-            id
+            id,
+            clear: false
         });
     }
     return labels;
@@ -301,7 +328,7 @@ export function createArrowMark(mark, d, base) {
         case 'none': return [];
     }
 }
-export function createAbsoluteElement(content, parent) {
+export function createAbsoluteElement(content, after) {
     const leftControler = document.createElement('div');
     const centerDiv = document.createElement('div');
     const topControler = document.createElement('div');
@@ -315,7 +342,7 @@ export function createAbsoluteElement(content, parent) {
     container.style.display = 'inline-block';
     container.style.verticalAlign = '-0.5ex';
     container.style.width = 'max-content';
-    parent.append(leftControler);
+    after.after(leftControler);
     leftControler.append(centerDiv);
     centerDiv.append(topControler);
     centerDiv.append(container);
@@ -492,6 +519,7 @@ export const cd = async (unit, compiler) => {
                     labels,
                     class: typeof first.options.class === 'string' ? first.options.class : '',
                     style: typeof first.options.style === 'string' ? first.options.style : '',
+                    clear: parseClear(first.options.clear)
                 });
                 continue;
             }
@@ -521,7 +549,7 @@ export const cd = async (unit, compiler) => {
                     tag: 'katex',
                     options: {},
                     children
-                }) : await compiler.compileSTDN(children), element),
+                }) : await compiler.compileSTDN(children), svg),
                 position: {
                     row: i,
                     column: j
@@ -554,7 +582,7 @@ export const cd = async (unit, compiler) => {
             }
             orderedArrows.push(arrow);
             for (const { unit, id } of arrow.labels) {
-                const labelElement = createAbsoluteElement(await compiler.compileUnit(unit), element);
+                const labelElement = createAbsoluteElement(await compiler.compileUnit(unit), svg);
                 if (unit.options['normal-font-size'] !== true) {
                     labelElement.container.style.fontSize = 'var(--length-font-log)';
                 }
@@ -692,20 +720,68 @@ export const cd = async (unit, compiler) => {
             path.style.strokeWidth = arrowWidth + 'px';
             path.style.fill = 'none';
             g.append(path);
+            return drawArray;
         }
         function drawBezier(bezier, shift, g) {
             const pieces = bezier.offset(-shift);
             if (Array.isArray(pieces)) {
-                drawPieces(pieces, g);
+                return drawPieces(pieces, g);
             }
+            return [];
         }
         function drawBezierToSquiggle(bezier, shift, g) {
             const pieces = bezier.offset(-shift);
             if (Array.isArray(pieces)) {
-                drawPieces(piecesToSquiggle(pieces), g);
+                return drawPieces(piecesToSquiggle(pieces), g);
+            }
+            return [];
+        }
+        const appendedArrows = [];
+        const masks = [];
+        const maskRects = [];
+        function addMask(data, clear) {
+            for (let i = 0; i < appendedArrows.length; i++) {
+                const arrow = appendedArrows[i];
+                check: if (clear !== true) {
+                    for (const className of clear) {
+                        if (arrow.classList.contains(className)) {
+                            break check;
+                        }
+                    }
+                    continue;
+                }
+                let mask = masks[i];
+                if (mask === undefined) {
+                    mask = masks[i] = document.createElementNS('http://www.w3.org/2000/svg', 'mask');
+                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    rect.style.fill = 'white';
+                    svg.append(mask);
+                    mask.append(rect);
+                    maskRects.push(rect);
+                    const id = Math.random().toString();
+                    mask.id = id;
+                    arrow.style.mask = `url(#${id})`;
+                }
+                if (typeof data === 'string') {
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.style.strokeWidth = arrowClear + 'px';
+                    path.style.stroke = 'black';
+                    path.style.fill = 'none';
+                    path.setAttribute('d', data);
+                    mask.append(path);
+                    continue;
+                }
+                const black = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                black.style.stroke = 'none';
+                black.style.fill = 'black';
+                black.setAttribute('x', data.x);
+                black.setAttribute('y', data.y);
+                black.setAttribute('width', data.width);
+                black.setAttribute('height', data.height);
+                mask.append(black);
             }
         }
-        for (const { from, to, out, in: arrowIn, bend, head, tail, shift, body, class: classStr, style, labels } of orderedArrows) {
+        for (const { from, to, out, in: arrowIn, bend, head, tail, shift, body, class: classStr, style, labels, clear } of orderedArrows) {
             let fromCoordinate;
             let toCoordinate;
             let fromBox;
@@ -834,15 +910,16 @@ export const cd = async (unit, compiler) => {
                 console.log(err);
             }
             svg.append(g);
+            const drawArray = [];
             if (body === 'two') {
-                drawBezier(bezier, shift + twoArrowBodyShift, g);
-                drawBezier(bezier, shift - twoArrowBodyShift, g);
+                drawArray.push(...drawBezier(bezier, shift + twoArrowBodyShift, g));
+                drawArray.push(...drawBezier(bezier, shift - twoArrowBodyShift, g));
             }
             else if (body === 'squiggle') {
-                drawBezierToSquiggle(bezier, shift, g);
+                drawArray.push(...drawBezierToSquiggle(bezier, shift, g));
             }
             else {
-                drawBezier(bezier, shift, g);
+                drawArray.push(...drawBezier(bezier, shift, g));
             }
             {
                 const base = {
@@ -851,7 +928,7 @@ export const cd = async (unit, compiler) => {
                 };
                 const pieces = createArrowMark(head, endD, base);
                 if (pieces.length > 0) {
-                    drawPieces(pieces, g);
+                    drawArray.push(...drawPieces(pieces, g));
                 }
             }
             {
@@ -861,10 +938,14 @@ export const cd = async (unit, compiler) => {
                 };
                 const pieces = createArrowMark(tail, startD, base);
                 if (pieces.length > 0) {
-                    drawPieces(pieces, g);
+                    drawArray.push(...drawPieces(pieces, g));
                 }
             }
-            for (const { at, shift: labelShift, id } of labels) {
+            if (clear !== false && drawArray.length > 0) {
+                addMask(drawArray.join(' '), clear);
+            }
+            appendedArrows.push(g);
+            for (const { at, shift: labelShift, id, clear } of labels) {
                 const root = bezier.get(at);
                 const normal = bezier.normal(at);
                 let allShift = shift + labelShift;
@@ -898,6 +979,14 @@ export const cd = async (unit, compiler) => {
                 if (ymax0 > ymax) {
                     ymax = ymax0;
                 }
+                if (clear !== false) {
+                    addMask({
+                        x: xmin0.toString(),
+                        y: ymin0.toString(),
+                        width: box.width.toString(),
+                        height: box.height.toString()
+                    }, clear);
+                }
             }
         }
         const width = xmax - xmin;
@@ -923,25 +1012,33 @@ export const cd = async (unit, compiler) => {
                 y: base.y - ymin
             });
         }
-        return svg.innerHTML;
+        for (const rect of maskRects) {
+            rect.setAttribute('x', xmin.toString());
+            rect.setAttribute('y', ymin.toString());
+            rect.setAttribute('width', width.toString());
+            rect.setAttribute('height', height.toString());
+        }
     }
     const observer = new MutationObserver(async () => {
         if (!element.isConnected) {
             return;
         }
         observer.disconnect();
-        let html;
+        let width;
+        let height;
         let count = 0;
         const total = 1;
         while (true) {
-            const nhtml = draw();
-            if (nhtml === html) {
+            draw();
+            const { width: width0, height: height0 } = element.getBoundingClientRect();
+            if (width0 === width && height0 === height) {
                 count++;
                 if (count === total) {
                     break;
                 }
             }
-            html = nhtml;
+            width = width0;
+            height = height0;
             await new Promise(r => setTimeout(r, 1000));
         }
     });

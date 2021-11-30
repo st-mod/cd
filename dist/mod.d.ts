@@ -31,6 +31,7 @@ export interface Label {
     shift: number;
     unit: STDNUnit;
     id: string;
+    clear: boolean | string[];
 }
 export interface Arrow {
     from: Position | string;
@@ -45,6 +46,7 @@ export interface Arrow {
     labels: Label[];
     class: string;
     style: string;
+    clear: boolean | string[];
 }
 export interface BaseIdToCount {
     [key: string]: number | undefined;
@@ -64,12 +66,13 @@ export declare function parseControl(option: STDNUnitOptions[string]): Control |
 export declare function parseArrowShift(option: STDNUnitOptions[string]): number;
 export declare function parseArrowBody(option: STDNUnitOptions[string]): ArrowBody;
 export declare function parseArrowMark(option: STDNUnitOptions[string], at: 'head' | 'tail', body: ArrowBody): ArrowMark;
+export declare function parseClear(option: STDNUnitOptions[string]): boolean | string[];
 export declare function extractLabels(children: STDN, tag: string, baseIdToCount: BaseIdToCount): Label[];
 export declare function angleToD(angle: number): Coordinate;
 export declare function dToAngle(d: Coordinate): number;
 export declare function getEdgePoint(angle: number, base: Coordinate, box: Box): Coordinate;
 export declare function createArrowMark(mark: ArrowMark, d: Coordinate, base: Coordinate): Bezier[];
-export declare function createAbsoluteElement(content: Node, parent: HTMLDivElement): AbsoluteElement;
+export declare function createAbsoluteElement(content: Node, after: Element): AbsoluteElement;
 export declare function placeAbsoluteElement(element: AbsoluteElement, coordinate: Coordinate): void;
 export declare function absoluteElementToBox(element: AbsoluteElement, heightScale: number, widthScale: number, margin: number): Box;
 export declare function piecesToSquiggle(pieces: Bezier[]): Bezier[];
