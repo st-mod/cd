@@ -1,5 +1,6 @@
 {css-src main.css, ucs-src ucs.js, global []}
 {mod beamer/core, global []}
+{css beamer/addon, global []}
 {class vcenter, frame [{title [Test]}]}
 {class vcenter, frame [{display [{CD [
     &
@@ -27,6 +28,20 @@
     \\
     \cdots
 ]}]}]}
+[]
+{cd [
+    one
+    {ar []}
+    {to 0 1, ar []}
+    &
+    two
+    {to 0 1, ar []}
+    \\
+    three
+    {ar []}
+    &
+    four
+]}
 []
 {CD [
     A
@@ -110,10 +125,97 @@
 []
 {CD [
     A
-    {tail tail, head two, class dashed, ar []}
+    {head two, tail tail, class dashed, ar []}
     &
     B
 ]}
+[]
+{frame [{two [
+    {CD [
+        A
+        {ar []}
+        &
+        B
+    ]}
+    {CD [
+        A
+        {head none, tail arrow, ar []}
+        &
+        B
+    ]}
+    {CD [
+        A
+        {body two, ar []}
+        &
+        B
+    ]}
+    {CD [
+        A
+        {body two, head none, tail arrow, ar []}
+        &
+        B
+    ]}
+    {CD [
+        A
+        {tail bar, ar []}
+        &
+        B
+    ]}
+    {CD [
+        A
+        {head bar, tail arrow, ar []}
+        &
+        B
+    ]}
+    {CD [
+        A
+        {body two, tail bar, ar []}
+        &
+        B
+    ]}
+    {CD [
+        A
+        {body two, head bar, tail arrow, ar []}
+        &
+        B
+    ]}
+    {CD [
+        A
+        {head harpoon, tail hook, ar []}
+        &
+        B
+    ]}
+    {CD [
+        A
+        {head hook, tail harpoon, ar []}
+        &
+        B
+    ]}
+    {CD [
+        A
+        {head harpoon-, tail hook-, ar []}
+        &
+        B
+    ]}
+    {CD [
+        A
+        {head hook-, tail harpoon-, ar []}
+        &
+        B
+    ]}
+    {CD [
+        A
+        {head two, tail tail, ar []}
+        &
+        B
+    ]}
+    {CD [
+        A
+        {head tail, tail two, ar []}
+        &
+        B
+    ]}
+]}]}
 []
 {gap 1.2 -, CD [
     &
