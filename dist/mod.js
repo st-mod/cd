@@ -911,6 +911,7 @@ export const cd = async (unit, compiler) => {
             }
             svg.append(g);
             const drawArray = [];
+            let mayEmpty = false;
             if (body === 'two') {
                 drawArray.push(...drawBezier(bezier, shift + twoArrowBodyShift, g));
                 drawArray.push(...drawBezier(bezier, shift - twoArrowBodyShift, g));
@@ -920,13 +921,7 @@ export const cd = async (unit, compiler) => {
             }
             else {
                 drawArray.push(...drawBezier(bezier, shift, g));
-                const placeHolder = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                placeHolder.setAttribute('x', '0');
-                placeHolder.setAttribute('y', '0');
-                placeHolder.setAttribute('width', arrowWidth.toString());
-                placeHolder.setAttribute('height', arrowWidth.toString());
-                placeHolder.style.stroke = placeHolder.style.fill = 'none';
-                g.append(placeHolder);
+                mayEmpty = true;
             }
             {
                 const base = {
@@ -936,6 +931,7 @@ export const cd = async (unit, compiler) => {
                 const pieces = createArrowMark(head, endD, base);
                 if (pieces.length > 0) {
                     drawArray.push(...drawPieces(pieces, g));
+                    mayEmpty = false;
                 }
             }
             {
@@ -946,10 +942,20 @@ export const cd = async (unit, compiler) => {
                 const pieces = createArrowMark(tail, startD, base);
                 if (pieces.length > 0) {
                     drawArray.push(...drawPieces(pieces, g));
+                    mayEmpty = false;
                 }
             }
             if (clear !== false && drawArray.length > 0) {
                 addMask(drawArray.join(' '), clear);
+            }
+            if (mayEmpty) {
+                const placeHolder = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                placeHolder.setAttribute('x', '0');
+                placeHolder.setAttribute('y', '0');
+                placeHolder.setAttribute('width', arrowWidth.toString());
+                placeHolder.setAttribute('height', arrowWidth.toString());
+                placeHolder.style.stroke = placeHolder.style.fill = 'none';
+                g.append(placeHolder);
             }
             appendedArrows.push(g);
             for (const { at, shift: labelShift, id, clear } of labels) {
