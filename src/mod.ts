@@ -394,7 +394,7 @@ export function absoluteElementToBox(element:AbsoluteElement,heightScale:number,
     element.topControler.style.height=scaledHeight+'em'
     const {top:baseTop}=element.topControler.getBoundingClientRect()
     const {top}=element.container.getBoundingClientRect()
-    const scaledBottom=(top-baseTop)*heightScale
+    const scaledBottom=Math.min(scaledHeight,(top-baseTop)*heightScale)
     return {
         height:scaledHeight+2*margin,
         width:scaledWidth+2*margin,
