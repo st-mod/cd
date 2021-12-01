@@ -739,7 +739,7 @@ export const cd = async (unit, compiler) => {
         const appendedArrows = [];
         const masks = [];
         const maskRects = [];
-        function addMask(data, clear) {
+        function addMask({ data, clear, num }) {
             for (let i = 0; i < appendedArrows.length; i++) {
                 const arrow = appendedArrows[i];
                 check: if (clear !== true) {
@@ -749,6 +749,9 @@ export const cd = async (unit, compiler) => {
                         }
                     }
                     continue;
+                }
+                else if (i >= num) {
+                    break;
                 }
                 let mask = masks[i];
                 if (mask === undefined) {
@@ -781,6 +784,7 @@ export const cd = async (unit, compiler) => {
                 mask.append(black);
             }
         }
+        const maskDataArray = [];
         for (const { from, to, out, in: arrowIn, bend, head, tail, shift, body, class: classStr, style, labels, clear } of orderedArrows) {
             let fromCoordinate;
             let toCoordinate;
@@ -946,7 +950,11 @@ export const cd = async (unit, compiler) => {
                 }
             }
             if (clear !== false && drawArray.length > 0) {
-                addMask(drawArray.join(' '), clear);
+                maskDataArray.push({
+                    data: drawArray.join(' '),
+                    clear,
+                    num: appendedArrows.length
+                });
             }
             if (mayEmpty) {
                 const placeHolder = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -993,15 +1001,20 @@ export const cd = async (unit, compiler) => {
                     ymax = ymax0;
                 }
                 if (clear !== false) {
-                    addMask({
-                        x: xmin0.toString(),
-                        y: ymin0.toString(),
-                        width: box.width.toString(),
-                        height: box.height.toString()
-                    }, clear);
+                    maskDataArray.push({
+                        data: {
+                            x: xmin0.toString(),
+                            y: ymin0.toString(),
+                            width: box.width.toString(),
+                            height: box.height.toString()
+                        },
+                        clear,
+                        num: appendedArrows.length
+                    });
                 }
             }
         }
+        maskDataArray.forEach(addMask);
         const width = xmax - xmin;
         const height = ymax - ymin;
         element.style.width = svg.style.width = width + 'em';

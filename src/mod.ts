@@ -72,6 +72,16 @@ interface Arrow{
 interface BaseIdToCount{
     [key:string]:number|undefined
 }
+interface MaskData{
+    data:string|{
+        x:string
+        y:string
+        width:string
+        height:string
+    }
+    clear:true|string[],
+    num:number
+}
 function parseGap(option:STDNUnitOptions[string]):Position{
     if(typeof option==='number'&&isFinite(option)){
         return {
@@ -808,12 +818,7 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
         const appendedArrows:SVGGElement[]=[]
         const masks:(SVGMaskElement|undefined)[]=[]
         const maskRects:SVGRectElement[]=[]
-        function addMask(data:string|{
-            x:string
-            y:string
-            width:string
-            height:string
-        },clear:true|string[]){
+        function addMask({data,clear,num}:MaskData){
             for(let i=0;i<appendedArrows.length;i++){
                 const arrow=appendedArrows[i]
                 check:if(clear!==true){
@@ -823,6 +828,8 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
                         }
                     }
                     continue
+                }else if(i>=num){
+                    break
                 }
                 let mask=masks[i]
                 if(mask===undefined){
@@ -855,6 +862,7 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
                 mask.append(black)
             }
         }
+        const maskDataArray:MaskData[]=[]
         for(const {from,to,out,in:arrowIn,bend,head,tail,shift,body,class:classStr,style,labels,clear} of orderedArrows){
             let fromCoordinate:Coordinate
             let toCoordinate:Coordinate
@@ -1009,7 +1017,11 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
                 }
             }
             if(clear!==false&&drawArray.length>0){
-                addMask(drawArray.join(' '),clear)
+                maskDataArray.push({
+                    data:drawArray.join(' '),
+                    clear,
+                    num:appendedArrows.length
+                })
             }
             if(mayEmpty){
                 const placeHolder=document.createElementNS('http://www.w3.org/2000/svg','rect')
@@ -1056,15 +1068,20 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
                     ymax=ymax0
                 }
                 if(clear!==false){
-                    addMask({
-                        x:xmin0.toString(),
-                        y:ymin0.toString(),
-                        width:box.width.toString(),
-                        height:box.height.toString()
-                    },clear)
+                    maskDataArray.push({
+                        data:{
+                            x:xmin0.toString(),
+                            y:ymin0.toString(),
+                            width:box.width.toString(),
+                            height:box.height.toString()
+                        },
+                        clear,
+                        num:appendedArrows.length
+                    })
                 }
             }
         }
+        maskDataArray.forEach(addMask)
         const width=xmax-xmin
         const height=ymax-ymin
         element.style.width=svg.style.width=width+'em'
