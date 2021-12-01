@@ -1,32 +1,23 @@
-import {UnitCompiler,stdnToInlinePlainString,stringToId} from '@ddu6/stc'
+import {UnitCompiler,lineToInlinePlainString,unitToInlinePlainString,stringToId} from '@ddu6/stc'
 import {STDN,STDNUnit,STDNUnitOptions} from 'stdn'
 import {Bezier} from 'bezier-js'
+const defaultRowGap=1.8
+const defaultColumnGap=2.4
+const cellMargin=.5
+const defaultBendAngle=30
+const squigglePeriod=.5
 const arrowWidth=.04
 const arrowBigMarkMargin=4*arrowWidth
 const twoArrowBodyShift=2.5*arrowWidth
 const defaultArrowShift=6*arrowWidth
 const arrowClear=12*arrowWidth
 const defaultLabelShift=.8
-const defaultBendAngle=30
-const defaultRowGap=1.8
-const defaultColumnGap=2.4
-const cellMargin=.5
 const labelMargin=arrowClear/2
-const squigglePeriod=.5
-export type ArrowMark='arrow'|'Arrow'|'bar'|'Bar'|'harpoon'|'harpoon-'|'hook'|'hook-'|'tail'|'two'|'none'
-export type ArrowBody='one'|'two'|'squiggle'
-export interface Cell{
-    children:STDN
-    id:string
-}
-export interface CellElement{
-    element:AbsoluteElement
-    position:Position
-    id:string
-}
-export interface Position{
-    row:number
-    column:number
+type ArrowMark='arrow'|'Arrow'|'bar'|'Bar'|'harpoon'|'harpoon-'|'hook'|'hook-'|'tail'|'two'|'none'
+type ArrowBody='one'|'two'|'squiggle'
+export interface Coordinate{
+    x:number
+    y:number
 }
 export interface Box{
     height:number
@@ -34,18 +25,36 @@ export interface Box{
     top:number
     bottom:number
 }
-export interface Control{
+export interface AbsoluteElement{
+    leftControler:HTMLDivElement
+    topControler:HTMLDivElement
+    container:HTMLDivElement
+}
+interface Position{
+    row:number
+    column:number
+}
+interface Cell{
+    children:STDN
+    id:string
+}
+interface CellElement{
+    element:AbsoluteElement
+    position:Position
+    id:string
+}
+interface Control{
     angle:number
     strength:number
 }
-export interface Label{
+interface Label{
     at:number
     shift:number
     unit:STDNUnit
     id:string
     clear:boolean|string[]
 }
-export interface Arrow{
+interface Arrow{
     from:Position|string
     to:Position|string
     out:Control|undefined
@@ -60,19 +69,10 @@ export interface Arrow{
     style:string
     clear:boolean|string[]
 }
-export interface BaseIdToCount{
+interface BaseIdToCount{
     [key:string]:number|undefined
 }
-export interface Coordinate{
-    x:number
-    y:number
-}
-export interface AbsoluteElement{
-    leftControler:HTMLDivElement
-    topControler:HTMLDivElement
-    container:HTMLDivElement
-}
-export function parseGap(option:STDNUnitOptions[string]):Position{
+function parseGap(option:STDNUnitOptions[string]):Position{
     if(typeof option==='number'&&isFinite(option)){
         return {
             row:option,
@@ -97,7 +97,7 @@ export function parseGap(option:STDNUnitOptions[string]):Position{
         column:defaultColumnGap
     }
 }
-export function parsePosition(option:STDNUnitOptions[string],at:'from'|'to',base:Position):Position|string{
+function parsePosition(option:STDNUnitOptions[string],at:'from'|'to',base:Position):Position|string{
     if(typeof option==='number'&&isFinite(option)){
         return {
             row:base.row,
@@ -125,7 +125,7 @@ export function parsePosition(option:STDNUnitOptions[string],at:'from'|'to',base
     }
     return option
 }
-export function parseControl(option:STDNUnitOptions[string]):Control|undefined{
+function parseControl(option:STDNUnitOptions[string]):Control|undefined{
     if(typeof option==='number'&&isFinite(option)){
         return {
             angle:option,
@@ -159,7 +159,7 @@ export function parseControl(option:STDNUnitOptions[string]):Control|undefined{
         strength
     }
 }
-export function parseArrowShift(option:STDNUnitOptions[string]){
+function parseArrowShift(option:STDNUnitOptions[string]){
     if(typeof option==='number'&&isFinite(option)){
         return option
     }
@@ -171,13 +171,13 @@ export function parseArrowShift(option:STDNUnitOptions[string]){
     }
     return 0
 }
-export function parseArrowBody(option:STDNUnitOptions[string]):ArrowBody{
+function parseArrowBody(option:STDNUnitOptions[string]):ArrowBody{
     if(option==='two'||option==='squiggle'){
         return option
     }
     return 'one'
 }
-export function parseArrowMark(option:STDNUnitOptions[string],at:'head'|'tail',body:ArrowBody):ArrowMark{
+function parseArrowMark(option:STDNUnitOptions[string],at:'head'|'tail',body:ArrowBody):ArrowMark{
     if(option==='none'){
         return option
     }
@@ -192,7 +192,7 @@ export function parseArrowMark(option:STDNUnitOptions[string],at:'head'|'tail',b
     }
     return at==='tail'?'none':body==='two'?'Arrow':'arrow'
 }
-export function parseClear(option:STDNUnitOptions[string]):boolean|string[]{
+function parseClear(option:STDNUnitOptions[string]):boolean|string[]{
     if(option===true){
         return option
     }
@@ -204,7 +204,7 @@ export function parseClear(option:STDNUnitOptions[string]):boolean|string[]{
     }
     return false
 }
-export function extractLabels(children:STDN,tag:string,baseIdToCount:BaseIdToCount){
+function extractLabels(children:STDN,tag:string,baseIdToCount:BaseIdToCount){
     const labels:Label[]=[]
     const main:STDNUnit={
         tag:tag==='katex'?tag:'div',
@@ -233,7 +233,7 @@ export function extractLabels(children:STDN,tag:string,baseIdToCount:BaseIdToCou
             }
             let baseId=first.options['cd-id']
             if(typeof baseId!=='string'){
-                baseId=stdnToInlinePlainString(first.children)
+                baseId=unitToInlinePlainString(first)
             }
             baseId=stringToId(baseId)
             const count=baseIdToCount[baseId]=(baseIdToCount[baseId]??0)+1
@@ -250,7 +250,7 @@ export function extractLabels(children:STDN,tag:string,baseIdToCount:BaseIdToCou
         main.children.push(line)
     }
     if(main.children.length>0){
-        const baseId=stringToId(stdnToInlinePlainString(main.children))
+        const baseId=stringToId(unitToInlinePlainString(main))
         const count=baseIdToCount[baseId]=(baseIdToCount[baseId]??0)+1
         const id=count>1||baseId.length===0?`${baseId}~${count}`:baseId
         labels.push({
@@ -387,50 +387,6 @@ export function createArrowMark(mark:ArrowMark,d:Coordinate,base:Coordinate):Bez
         case 'none':return []
     }
 }
-export function createAbsoluteElement(content:Node,after:Element):AbsoluteElement{
-    const leftControler=document.createElement('div')
-    const centerDiv=document.createElement('div')
-    const topControler=document.createElement('div')
-    const container=document.createElement('div')
-    leftControler.style.position='absolute'
-    leftControler.style.top='0'
-    leftControler.style.width='0'
-    leftControler.style.display='flex'
-    leftControler.style.justifyContent='center'
-    topControler.style.display='inline-block'
-    container.style.display='inline-block'
-    container.style.verticalAlign='-0.5ex'
-    container.style.width='max-content'
-    after.after(leftControler)
-    leftControler.append(centerDiv)
-    centerDiv.append(topControler)
-    centerDiv.append(container)
-    container.append(content)
-    return {
-        leftControler,
-        topControler,
-        container
-    }
-}
-export function placeAbsoluteElement(element:AbsoluteElement,coordinate:Coordinate){
-    element.leftControler.style.left=coordinate.x+'em'
-    element.topControler.style.height=coordinate.y+'em'
-}
-export function absoluteElementToBox(element:AbsoluteElement,heightScale:number,widthScale:number,margin:number):Box{
-    const {height,width}=element.container.getBoundingClientRect()
-    const scaledHeight=height*heightScale
-    const scaledWidth=width*widthScale
-    element.topControler.style.height=scaledHeight+'em'
-    const {top:baseTop}=element.topControler.getBoundingClientRect()
-    const {top}=element.container.getBoundingClientRect()
-    const scaledBottom=Math.min(scaledHeight,(top-baseTop)*heightScale)
-    return {
-        height:scaledHeight+2*margin,
-        width:scaledWidth+2*margin,
-        top:scaledHeight-scaledBottom+margin,
-        bottom:scaledBottom+margin
-    }
-}
 export function piecesToSquiggle(pieces:Bezier[]):Bezier[]{
     let totalLength=0
     const parts:{
@@ -516,6 +472,50 @@ export function piecesToSquiggle(pieces:Bezier[]):Bezier[]{
     }
     return out
 }
+export function createAbsoluteElement(content:Node,after:Element):AbsoluteElement{
+    const leftControler=document.createElement('div')
+    const centerDiv=document.createElement('div')
+    const topControler=document.createElement('div')
+    const container=document.createElement('div')
+    leftControler.style.position='absolute'
+    leftControler.style.top='0'
+    leftControler.style.width='0'
+    leftControler.style.display='flex'
+    leftControler.style.justifyContent='center'
+    topControler.style.display='inline-block'
+    container.style.display='inline-block'
+    container.style.verticalAlign='-0.5ex'
+    container.style.width='max-content'
+    after.after(leftControler)
+    leftControler.append(centerDiv)
+    centerDiv.append(topControler)
+    centerDiv.append(container)
+    container.append(content)
+    return {
+        leftControler,
+        topControler,
+        container
+    }
+}
+export function absoluteElementToBox(element:AbsoluteElement,heightScale:number,widthScale:number,margin:number):Box{
+    const {height,width}=element.container.getBoundingClientRect()
+    const scaledHeight=height*heightScale
+    const scaledWidth=width*widthScale
+    element.topControler.style.height=scaledHeight+'em'
+    const {top:baseTop}=element.topControler.getBoundingClientRect()
+    const {top}=element.container.getBoundingClientRect()
+    const scaledBottom=Math.min(scaledHeight,(top-baseTop)*heightScale)
+    return {
+        height:scaledHeight+2*margin,
+        width:scaledWidth+2*margin,
+        top:scaledHeight-scaledBottom+margin,
+        bottom:scaledBottom+margin
+    }
+}
+export function placeAbsoluteElement(element:AbsoluteElement,coordinate:Coordinate){
+    element.leftControler.style.left=coordinate.x+'em'
+    element.topControler.style.height=coordinate.y+'em'
+}
 export const cd:UnitCompiler=async (unit,compiler)=>{
     const gap=parseGap(unit.options.gap)
     const element=document.createElement('div')
@@ -585,7 +585,7 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
         }
         cell.children.push(line)
         if(cell.id.length===0){
-            const baseId=stringToId(stdnToInlinePlainString([line]))
+            const baseId=stringToId(lineToInlinePlainString(line))
             if(baseId.length===0){
                 continue
             }

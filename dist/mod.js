@@ -1,18 +1,18 @@
-import { stdnToInlinePlainString, stringToId } from '@ddu6/stc';
+import { lineToInlinePlainString, unitToInlinePlainString, stringToId } from '@ddu6/stc';
 import { Bezier } from 'bezier-js';
+const defaultRowGap = 1.8;
+const defaultColumnGap = 2.4;
+const cellMargin = .5;
+const defaultBendAngle = 30;
+const squigglePeriod = .5;
 const arrowWidth = .04;
 const arrowBigMarkMargin = 4 * arrowWidth;
 const twoArrowBodyShift = 2.5 * arrowWidth;
 const defaultArrowShift = 6 * arrowWidth;
 const arrowClear = 12 * arrowWidth;
 const defaultLabelShift = .8;
-const defaultBendAngle = 30;
-const defaultRowGap = 1.8;
-const defaultColumnGap = 2.4;
-const cellMargin = .5;
 const labelMargin = arrowClear / 2;
-const squigglePeriod = .5;
-export function parseGap(option) {
+function parseGap(option) {
     if (typeof option === 'number' && isFinite(option)) {
         return {
             row: option,
@@ -37,7 +37,7 @@ export function parseGap(option) {
         column: defaultColumnGap
     };
 }
-export function parsePosition(option, at, base) {
+function parsePosition(option, at, base) {
     if (typeof option === 'number' && isFinite(option)) {
         return {
             row: base.row,
@@ -65,7 +65,7 @@ export function parsePosition(option, at, base) {
     }
     return option;
 }
-export function parseControl(option) {
+function parseControl(option) {
     if (typeof option === 'number' && isFinite(option)) {
         return {
             angle: option,
@@ -99,7 +99,7 @@ export function parseControl(option) {
         strength
     };
 }
-export function parseArrowShift(option) {
+function parseArrowShift(option) {
     if (typeof option === 'number' && isFinite(option)) {
         return option;
     }
@@ -111,13 +111,13 @@ export function parseArrowShift(option) {
     }
     return 0;
 }
-export function parseArrowBody(option) {
+function parseArrowBody(option) {
     if (option === 'two' || option === 'squiggle') {
         return option;
     }
     return 'one';
 }
-export function parseArrowMark(option, at, body) {
+function parseArrowMark(option, at, body) {
     if (option === 'none') {
         return option;
     }
@@ -132,7 +132,7 @@ export function parseArrowMark(option, at, body) {
     }
     return at === 'tail' ? 'none' : body === 'two' ? 'Arrow' : 'arrow';
 }
-export function parseClear(option) {
+function parseClear(option) {
     if (option === true) {
         return option;
     }
@@ -144,7 +144,7 @@ export function parseClear(option) {
     }
     return false;
 }
-export function extractLabels(children, tag, baseIdToCount) {
+function extractLabels(children, tag, baseIdToCount) {
     const labels = [];
     const main = {
         tag: tag === 'katex' ? tag : 'div',
@@ -174,7 +174,7 @@ export function extractLabels(children, tag, baseIdToCount) {
             }
             let baseId = first.options['cd-id'];
             if (typeof baseId !== 'string') {
-                baseId = stdnToInlinePlainString(first.children);
+                baseId = unitToInlinePlainString(first);
             }
             baseId = stringToId(baseId);
             const count = baseIdToCount[baseId] = (baseIdToCount[baseId] ?? 0) + 1;
@@ -191,7 +191,7 @@ export function extractLabels(children, tag, baseIdToCount) {
         main.children.push(line);
     }
     if (main.children.length > 0) {
-        const baseId = stringToId(stdnToInlinePlainString(main.children));
+        const baseId = stringToId(unitToInlinePlainString(main));
         const count = baseIdToCount[baseId] = (baseIdToCount[baseId] ?? 0) + 1;
         const id = count > 1 || baseId.length === 0 ? `${baseId}~${count}` : baseId;
         labels.push({
@@ -328,50 +328,6 @@ export function createArrowMark(mark, d, base) {
         case 'none': return [];
     }
 }
-export function createAbsoluteElement(content, after) {
-    const leftControler = document.createElement('div');
-    const centerDiv = document.createElement('div');
-    const topControler = document.createElement('div');
-    const container = document.createElement('div');
-    leftControler.style.position = 'absolute';
-    leftControler.style.top = '0';
-    leftControler.style.width = '0';
-    leftControler.style.display = 'flex';
-    leftControler.style.justifyContent = 'center';
-    topControler.style.display = 'inline-block';
-    container.style.display = 'inline-block';
-    container.style.verticalAlign = '-0.5ex';
-    container.style.width = 'max-content';
-    after.after(leftControler);
-    leftControler.append(centerDiv);
-    centerDiv.append(topControler);
-    centerDiv.append(container);
-    container.append(content);
-    return {
-        leftControler,
-        topControler,
-        container
-    };
-}
-export function placeAbsoluteElement(element, coordinate) {
-    element.leftControler.style.left = coordinate.x + 'em';
-    element.topControler.style.height = coordinate.y + 'em';
-}
-export function absoluteElementToBox(element, heightScale, widthScale, margin) {
-    const { height, width } = element.container.getBoundingClientRect();
-    const scaledHeight = height * heightScale;
-    const scaledWidth = width * widthScale;
-    element.topControler.style.height = scaledHeight + 'em';
-    const { top: baseTop } = element.topControler.getBoundingClientRect();
-    const { top } = element.container.getBoundingClientRect();
-    const scaledBottom = Math.min(scaledHeight, (top - baseTop) * heightScale);
-    return {
-        height: scaledHeight + 2 * margin,
-        width: scaledWidth + 2 * margin,
-        top: scaledHeight - scaledBottom + margin,
-        bottom: scaledBottom + margin
-    };
-}
 export function piecesToSquiggle(pieces) {
     let totalLength = 0;
     const parts = [];
@@ -457,6 +413,50 @@ export function piecesToSquiggle(pieces) {
     }
     return out;
 }
+export function createAbsoluteElement(content, after) {
+    const leftControler = document.createElement('div');
+    const centerDiv = document.createElement('div');
+    const topControler = document.createElement('div');
+    const container = document.createElement('div');
+    leftControler.style.position = 'absolute';
+    leftControler.style.top = '0';
+    leftControler.style.width = '0';
+    leftControler.style.display = 'flex';
+    leftControler.style.justifyContent = 'center';
+    topControler.style.display = 'inline-block';
+    container.style.display = 'inline-block';
+    container.style.verticalAlign = '-0.5ex';
+    container.style.width = 'max-content';
+    after.after(leftControler);
+    leftControler.append(centerDiv);
+    centerDiv.append(topControler);
+    centerDiv.append(container);
+    container.append(content);
+    return {
+        leftControler,
+        topControler,
+        container
+    };
+}
+export function absoluteElementToBox(element, heightScale, widthScale, margin) {
+    const { height, width } = element.container.getBoundingClientRect();
+    const scaledHeight = height * heightScale;
+    const scaledWidth = width * widthScale;
+    element.topControler.style.height = scaledHeight + 'em';
+    const { top: baseTop } = element.topControler.getBoundingClientRect();
+    const { top } = element.container.getBoundingClientRect();
+    const scaledBottom = Math.min(scaledHeight, (top - baseTop) * heightScale);
+    return {
+        height: scaledHeight + 2 * margin,
+        width: scaledWidth + 2 * margin,
+        top: scaledHeight - scaledBottom + margin,
+        bottom: scaledBottom + margin
+    };
+}
+export function placeAbsoluteElement(element, coordinate) {
+    element.leftControler.style.left = coordinate.x + 'em';
+    element.topControler.style.height = coordinate.y + 'em';
+}
 export const cd = async (unit, compiler) => {
     const gap = parseGap(unit.options.gap);
     const element = document.createElement('div');
@@ -526,7 +526,7 @@ export const cd = async (unit, compiler) => {
         }
         cell.children.push(line);
         if (cell.id.length === 0) {
-            const baseId = stringToId(stdnToInlinePlainString([line]));
+            const baseId = stringToId(lineToInlinePlainString(line));
             if (baseId.length === 0) {
                 continue;
             }
