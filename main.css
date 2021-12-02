@@ -4,6 +4,7 @@
 
 .unit.cd>svg>g {
     stroke: currentColor;
+    stroke-linecap: round;
 }
 
 .unit.cd>svg>g.dashed>path:first-child {
