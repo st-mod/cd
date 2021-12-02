@@ -1,6 +1,6 @@
 import { UnitCompiler } from '@ddu6/stc';
 import { Bezier } from 'bezier-js';
-declare type ArrowMark = 'arrow' | 'Arrow' | 'bar' | 'Bar' | 'harpoon' | 'harpoon-' | 'hook' | 'hook-' | 'tail' | 'two' | 'none';
+declare type ArrowMark = 'arrow' | 'arrow2' | 'arrow3' | 'bar' | 'bar2' | 'bar3' | 'harpoon' | '-harpoon' | 'hook' | '-hook' | 'loop' | '-loop' | 'tail' | 'two' | 'none';
 export interface Coordinate {
     x: number;
     y: number;

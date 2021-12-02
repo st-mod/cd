@@ -169,13 +169,13 @@
     ]}
     {CD [
         A
-        {bend, body two, tail bar, ar []}
+        {bend, body three, tail bar, ar []}
         &
         B
     ]}
     {CD [
         A
-        {bend, body two, head bar, tail arrow, ar []}
+        {bend, body three, head bar, tail arrow, ar []}
         &
         B
     ]}
@@ -193,13 +193,25 @@
     ]}
     {CD [
         A
-        {bend, head harpoon-, tail hook-, ar []}
+        {bend, head -harpoon, tail -hook, ar []}
         &
         B
     ]}
     {CD [
         A
-        {bend, head hook-, tail harpoon-, ar []}
+        {bend, head -hook, tail -harpoon, ar []}
+        &
+        B
+    ]}
+    {CD [
+        A
+        {bend, head -harpoon, tail -loop, ar []}
+        &
+        B
+    ]}
+    {CD [
+        A
+        {bend, head -loop, tail -harpoon, ar []}
         &
         B
     ]}

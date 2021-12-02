@@ -136,7 +136,7 @@ function parseArrowWidth(option) {
     return defaultArrowWidth;
 }
 function parseArrowBody(option) {
-    if (option === 'two' || option === 'squiggle') {
+    if (option === 'two' || option === 'three' || option === 'squiggle') {
         return option;
     }
     return 'one';
@@ -146,15 +146,15 @@ function parseArrowMark(option, at, body) {
         return option;
     }
     if (option === 'arrow') {
-        return body === 'two' ? 'Arrow' : option;
+        return body === 'three' ? 'arrow3' : body === 'two' ? 'arrow2' : option;
     }
     if (option === 'bar') {
-        return body === 'two' ? 'Bar' : option;
+        return body === 'three' ? 'bar3' : body === 'two' ? 'bar2' : option;
     }
-    if (option === 'harpoon' || option === 'harpoon-' || option === 'hook' || option === 'hook-' || option === 'two' || option === 'tail') {
-        return body === 'two' ? 'none' : option;
+    if (option === 'harpoon' || option === '-harpoon' || option === 'hook' || option === '-hook' || option === 'loop' || option === '-loop' || option === 'two' || option === 'tail') {
+        return body === 'three' || body === 'two' ? 'none' : option;
     }
-    return at === 'tail' ? 'none' : body === 'two' ? 'Arrow' : 'arrow';
+    return at === 'tail' ? 'none' : body === 'three' ? 'arrow3' : body === 'two' ? 'arrow2' : 'arrow';
 }
 function parseLabelAt(option) {
     if (typeof option === 'number' && option >= 0 && option <= 1) {
@@ -245,11 +245,59 @@ export function getEdgePoint(angle, base, box) {
     const y = Math.min(box.bottom, box.width * k / 2);
     return { x: base.x + x, y: base.y + y };
 }
-const harpoon = [5.4, 6.5, 4.8, 3, 2, 1, 0, 0];
-const Harpoon = [4, 7, 2, 3, -2, 1, -5.5, 0];
-const hook = [0, 0, -6, 0, -6, -5, 0, -5];
-const bar = [0, 5, 0, 0, 0, -5];
-const Bar = [0, 7.5, 0, 0, 0, -7.5];
+const harpoon = [
+    5.4, 6.5,
+    4.8, 3,
+    2, 1,
+    0, 0
+];
+const harpoon2 = [
+    4, 7,
+    2, 3,
+    -2, 1,
+    -5.5, 0
+];
+const harpoon3 = [
+    1.5, 8,
+    -0.5, 2.5,
+    -5, 0
+];
+const harpoon3Line = [
+    0, 0,
+    -2.5, 0,
+    -5, 0
+];
+const hook = [
+    0, 0,
+    -4, 0,
+    -4, -5,
+    0, -5
+];
+const loop = [
+    0, -5,
+    3, -5,
+    3, 0
+];
+const loopLine = [
+    3, 0,
+    3, 2.5,
+    3, 5
+];
+const bar = [
+    0, 5,
+    0, 0,
+    0, -5
+];
+const bar2 = [
+    0, 7.5,
+    0, 0,
+    0, -7.5
+];
+const bar3 = [
+    0, 10,
+    0, 0,
+    0, -10
+];
 export function createArrowMark(mark, d, base) {
     function rotateAndScaleOne(coordinate) {
         return {
@@ -271,16 +319,21 @@ export function createArrowMark(mark, d, base) {
         case 'harpoon': return [
             new Bezier(trans(...harpoon))
         ];
-        case 'harpoon-': return [
+        case '-harpoon': return [
             new Bezier(trans(...harpoon.map((val, i) => i % 2 === 0 ? val : -val)))
         ];
         case 'arrow': return [
             new Bezier(trans(...harpoon)),
             new Bezier(trans(...harpoon.map((val, i) => i % 2 === 0 ? val : -val)))
         ];
-        case 'Arrow': return [
-            new Bezier(trans(...Harpoon)),
-            new Bezier(trans(...Harpoon.map((val, i) => i % 2 === 0 ? val : -val)))
+        case 'arrow2': return [
+            new Bezier(trans(...harpoon2)),
+            new Bezier(trans(...harpoon2.map((val, i) => i % 2 === 0 ? val : -val)))
+        ];
+        case 'arrow3': return [
+            new Bezier(trans(...harpoon3)),
+            new Bezier(trans(...harpoon3.map((val, i) => i % 2 === 0 ? val : -val))),
+            new Bezier(trans(...harpoon3Line))
         ];
         case 'tail': return [
             new Bezier(trans(...harpoon.map((val, i) => i % 2 === 0 ? -val : val))),
@@ -295,14 +348,27 @@ export function createArrowMark(mark, d, base) {
         case 'hook': return [
             new Bezier(trans(...hook))
         ];
-        case 'hook-': return [
+        case '-hook': return [
             new Bezier(trans(...hook.map((val, i) => i % 2 === 0 ? val : -val)))
+        ];
+        case 'loop': return [
+            new Bezier(trans(...hook)),
+            new Bezier(trans(...loop)),
+            new Bezier(trans(...loopLine))
+        ];
+        case '-loop': return [
+            new Bezier(trans(...hook.map((val, i) => i % 2 === 0 ? val : -val))),
+            new Bezier(trans(...loop.map((val, i) => i % 2 === 0 ? val : -val))),
+            new Bezier(trans(...loopLine.map((val, i) => i % 2 === 0 ? val : -val)))
         ];
         case 'bar': return [
             new Bezier(trans(...bar))
         ];
-        case 'Bar': return [
-            new Bezier(trans(...Bar))
+        case 'bar2': return [
+            new Bezier(trans(...bar2))
+        ];
+        case 'bar3': return [
+            new Bezier(trans(...bar3))
         ];
         case 'none': return [];
     }
@@ -912,11 +978,11 @@ export const cd = async (unit, compiler) => {
                 startStrength = out.strength;
                 endStrength = arrowIn.strength;
             }
-            if (head === 'Arrow' || head === 'hook' || head === 'hook-' || head === 'tail') {
+            if (head === 'arrow2' || head === 'arrow3' || head === 'hook' || head === '-hook' || head === 'loop' || head === '-loop' || head === 'tail') {
                 end.x = end.x + endD.x * arrowBigMarkMargin;
                 end.y = end.y + endD.y * arrowBigMarkMargin;
             }
-            if (tail === 'Arrow' || tail === 'hook' || tail === 'hook-' || tail === 'tail') {
+            if (tail === 'arrow2' || tail === 'arrow3' || tail === 'hook' || tail === '-hook' || tail === 'loop' || tail === '-loop' || tail === 'tail') {
                 start.x = start.x + startD.x * arrowBigMarkMargin;
                 start.y = start.y + startD.y * arrowBigMarkMargin;
             }
@@ -949,7 +1015,12 @@ export const cd = async (unit, compiler) => {
             svg.append(g);
             const drawArray = [];
             let mayEmpty = false;
-            if (body === 'two') {
+            if (body === 'three') {
+                drawArray.push(...drawBezier(bezier, width, shift + 2 * twoArrowBodyShift, g));
+                drawArray.push(...drawBezier(bezier, width, shift, g));
+                drawArray.push(...drawBezier(bezier, width, shift - 2 * twoArrowBodyShift, g));
+            }
+            else if (body === 'two') {
                 drawArray.push(...drawBezier(bezier, width, shift + twoArrowBodyShift, g));
                 drawArray.push(...drawBezier(bezier, width, shift - twoArrowBodyShift, g));
             }
@@ -1006,8 +1077,13 @@ export const cd = async (unit, compiler) => {
                 const root = bezier.get(at);
                 const normal = bezier.normal(at);
                 let allShift = shift + labelShift;
-                if ((body === 'two' || body === 'squiggle') && labelShift !== 0) {
-                    allShift += twoArrowBodyShift * Math.sign(labelShift);
+                if (labelShift !== 0) {
+                    if (body === 'three') {
+                        allShift += 2 * twoArrowBodyShift * Math.sign(labelShift);
+                    }
+                    else if (body === 'two' || body === 'squiggle') {
+                        allShift += twoArrowBodyShift * Math.sign(labelShift);
+                    }
                 }
                 const base = {
                     x: root.x - normal.x * allShift,
