@@ -1,17 +1,23 @@
-import { lineToInlinePlainString, unitToInlinePlainString, stringToId } from '@ddu6/stc';
+import { lineToInlinePlainString, unitToInlinePlainString, stringToId, getLastGlobalOption } from '@ddu6/stc';
 import { Bezier } from 'bezier-js';
 const defaultRowGap = 1.8;
 const defaultColumnGap = 2.4;
-const cellMargin = .5;
+const defaultCellMargin = .5;
 const defaultBendAngle = 30;
 const squigglePeriod = .5;
-const arrowWidth = .04;
-const arrowBigMarkMargin = 4 * arrowWidth;
-const twoArrowBodyShift = 2.5 * arrowWidth;
-const defaultArrowShift = 6 * arrowWidth;
-const arrowClear = 12 * arrowWidth;
+const defaultArrowWidth = .04;
+const arrowBigMarkMargin = 4 * defaultArrowWidth;
+const twoArrowBodyShift = 2.5 * defaultArrowWidth;
+const defaultArrowMargin = 6 * defaultArrowWidth;
+const defaultArrowShift = defaultArrowMargin;
+const defaultLabelMargin = defaultArrowMargin;
 const defaultLabelShift = .8;
-const labelMargin = arrowClear / 2;
+function parseDrawNum(option) {
+    if (typeof option === 'number' && isFinite(option) && option >= 1 && option % 1 === 0) {
+        return option;
+    }
+    return 1;
+}
 function parseGap(option) {
     if (typeof option === 'number' && isFinite(option)) {
         return {
@@ -21,10 +27,10 @@ function parseGap(option) {
     }
     if (typeof option === 'string') {
         let [column, row] = option.split(/\s+/, 2).map(Number);
-        if (!isFinite(column)) {
+        if (!isFinite(column) || column < 0) {
             column = defaultColumnGap;
         }
-        if (!isFinite(row)) {
+        if (!isFinite(row) || row < 0) {
             row = defaultRowGap;
         }
         return {
@@ -36,6 +42,18 @@ function parseGap(option) {
         row: defaultRowGap,
         column: defaultColumnGap
     };
+}
+function parseMargin(option, type) {
+    if (typeof option === 'number' && isFinite(option) && option >= 0) {
+        return option;
+    }
+    if (type === 'cell') {
+        return defaultCellMargin;
+    }
+    if (type === 'arrow') {
+        return defaultArrowMargin;
+    }
+    return defaultLabelMargin;
 }
 function parsePosition(option, at, base) {
     if (typeof option === 'number' && isFinite(option)) {
@@ -111,6 +129,12 @@ function parseArrowShift(option) {
     }
     return 0;
 }
+function parseArrowWidth(option) {
+    if (typeof option === 'number' && isFinite(option) && option >= 0) {
+        return option;
+    }
+    return defaultArrowWidth;
+}
 function parseArrowBody(option) {
     if (option === 'two' || option === 'squiggle') {
         return option;
@@ -132,6 +156,21 @@ function parseArrowMark(option, at, body) {
     }
     return at === 'tail' ? 'none' : body === 'two' ? 'Arrow' : 'arrow';
 }
+function parseLabelAt(option) {
+    if (typeof option === 'number' && option >= 0 && option <= 1) {
+        return option;
+    }
+    return .5;
+}
+function parseLabelShift(option) {
+    if (typeof option === 'number' && isFinite(option)) {
+        return option;
+    }
+    if (option === 'right') {
+        return -defaultLabelShift;
+    }
+    return defaultLabelShift;
+}
 function parseClear(option) {
     if (option === true) {
         return option;
@@ -143,66 +182,6 @@ function parseClear(option) {
         }
     }
     return false;
-}
-function extractLabels(children, tag, baseIdToCount) {
-    const labels = [];
-    const main = {
-        tag: tag === 'katex' ? tag : 'div',
-        options: {},
-        children: []
-    };
-    for (const line of children) {
-        if (line.length === 0) {
-            main.children.push(line);
-            continue;
-        }
-        const first = line[0];
-        if (typeof first === 'string') {
-            main.children.push(line);
-            continue;
-        }
-        let { at, shift } = first.options;
-        if (at !== undefined || shift !== undefined) {
-            if (typeof at !== 'number' || at < 0 || at > 1) {
-                at = .5;
-            }
-            if (shift === 'right') {
-                shift = -defaultLabelShift;
-            }
-            else if (typeof shift !== 'number' || !isFinite(shift)) {
-                shift = defaultLabelShift;
-            }
-            let baseId = first.options['cd-id'];
-            if (typeof baseId !== 'string') {
-                baseId = unitToInlinePlainString(first);
-            }
-            baseId = stringToId(baseId);
-            const count = baseIdToCount[baseId] = (baseIdToCount[baseId] ?? 0) + 1;
-            const id = count > 1 || baseId.length === 0 ? `${baseId}~${count}` : baseId;
-            labels.push({
-                at,
-                shift,
-                unit: first,
-                id,
-                clear: parseClear(first.options.clear)
-            });
-            continue;
-        }
-        main.children.push(line);
-    }
-    if (main.children.length > 0) {
-        const baseId = stringToId(unitToInlinePlainString(main));
-        const count = baseIdToCount[baseId] = (baseIdToCount[baseId] ?? 0) + 1;
-        const id = count > 1 || baseId.length === 0 ? `${baseId}~${count}` : baseId;
-        labels.push({
-            at: .5,
-            shift: defaultLabelShift,
-            unit: main,
-            id,
-            clear: false
-        });
-    }
-    return labels;
 }
 export function angleToD(angle) {
     return {
@@ -267,15 +246,15 @@ export function getEdgePoint(angle, base, box) {
     return { x: base.x + x, y: base.y + y };
 }
 const harpoon = [5.4, 6.5, 4.8, 3, 2, 1, 0, 0];
-const Harpoon = [4.5, 7.5, 3, 4.5, -1.5, 1, -4.5, 0];
+const Harpoon = [4, 7, 2, 3, -2, 1, -5.5, 0];
 const hook = [0, 0, -6, 0, -6, -5, 0, -5];
 const bar = [0, 5, 0, 0, 0, -5];
 const Bar = [0, 7.5, 0, 0, 0, -7.5];
 export function createArrowMark(mark, d, base) {
     function rotateAndScaleOne(coordinate) {
         return {
-            x: base.x + coordinate.x * arrowWidth * d.x - coordinate.y * arrowWidth * d.y,
-            y: base.y + coordinate.y * arrowWidth * d.x + coordinate.x * arrowWidth * d.y
+            x: base.x + coordinate.x * defaultArrowWidth * d.x - coordinate.y * defaultArrowWidth * d.y,
+            y: base.y + coordinate.y * defaultArrowWidth * d.x + coordinate.x * defaultArrowWidth * d.y
         };
     }
     function trans(...coordinates) {
@@ -458,7 +437,9 @@ export function placeAbsoluteElement(element, coordinate) {
     element.topControler.style.height = coordinate.y + 'em';
 }
 export const cd = async (unit, compiler) => {
-    const gap = parseGap(unit.options.gap);
+    const drawNum = parseDrawNum(unit.options['draw-num'] ?? getLastGlobalOption('draw-num', 'cd', compiler.context.tagToGlobalOptions));
+    const gap = parseGap(unit.options.gap ?? getLastGlobalOption('gap', 'cd', compiler.context.tagToGlobalOptions));
+    const cellMargin = parseMargin(unit.options['cell-margin'] ?? getLastGlobalOption('cell-margin', 'cd', compiler.context.tagToGlobalOptions), 'cell');
     const element = document.createElement('div');
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     element.classList.add('cd');
@@ -475,6 +456,59 @@ export const cd = async (unit, compiler) => {
     const table = [row];
     const arrows = [];
     const baseIdToCount = {};
+    function createId(baseString) {
+        const baseId = stringToId(baseString);
+        const count = baseIdToCount[baseId] = (baseIdToCount[baseId] ?? 0) + 1;
+        return count > 1 || baseId.length === 0 ? `${baseId}~${count}` : baseId;
+    }
+    function extractLabels(children, tag) {
+        const labels = [];
+        const main = {
+            tag: tag === 'katex' ? tag : 'div',
+            options: {},
+            children: []
+        };
+        for (const line of children) {
+            if (line.length === 0) {
+                main.children.push(line);
+                continue;
+            }
+            const first = line[0];
+            if (typeof first === 'string') {
+                main.children.push(line);
+                continue;
+            }
+            let { at, shift, margin } = first.options;
+            let baseString = first.options['cd-id'];
+            if (at !== undefined || shift !== undefined || margin !== undefined || baseString !== undefined) {
+                if (typeof baseString !== 'string') {
+                    baseString = unitToInlinePlainString(first);
+                }
+                labels.push({
+                    at: parseLabelAt(at),
+                    shift: parseLabelShift(shift),
+                    margin: parseMargin(margin ?? unit.options['label-margin'] ?? getLastGlobalOption('label-margin', 'cd', compiler.context.tagToGlobalOptions), 'label'),
+                    unit: first,
+                    id: createId(baseString),
+                    clear: parseClear(first.options.clear)
+                });
+                continue;
+            }
+            main.children.push(line);
+        }
+        if (main.children.length > 0) {
+            const baseString = unitToInlinePlainString(main);
+            labels.push({
+                at: .5,
+                shift: defaultLabelShift,
+                margin: parseMargin(unit.options['label-margin'] ?? getLastGlobalOption('label-margin', 'cd', compiler.context.tagToGlobalOptions), 'label'),
+                unit: main,
+                id: createId(baseString),
+                clear: false
+            });
+        }
+        return labels;
+    }
     for (const line of unit.children) {
         if (line.length === 0) {
             cell.children.push(line);
@@ -505,7 +539,7 @@ export const cd = async (unit, compiler) => {
                     column: row.length - 1
                 };
                 const body = parseArrowBody(first.options.body);
-                const labels = extractLabels(first.children, first.tag, baseIdToCount);
+                const labels = extractLabels(first.children, first.tag);
                 arrows.push({
                     from: parsePosition(first.options.from, 'from', base),
                     to: parsePosition(first.options.to, 'to', base),
@@ -513,6 +547,8 @@ export const cd = async (unit, compiler) => {
                     in: parseControl(first.options.in),
                     bend: parseControl(first.options.bend),
                     shift: parseArrowShift(first.options.shift),
+                    margin: parseMargin(first.options.margin ?? unit.options['arrow-margin'] ?? getLastGlobalOption('arrow-margin', 'cd', compiler.context.tagToGlobalOptions), 'arrow'),
+                    width: parseArrowWidth(first.options.width ?? unit.options['arrow-width'] ?? getLastGlobalOption('arrow-width', 'cd', compiler.context.tagToGlobalOptions)),
                     body,
                     head: parseArrowMark(first.options.head, 'head', body),
                     tail: parseArrowMark(first.options.tail, 'tail', body),
@@ -526,13 +562,10 @@ export const cd = async (unit, compiler) => {
         }
         cell.children.push(line);
         if (cell.id.length === 0) {
-            const baseId = stringToId(lineToInlinePlainString(line));
-            if (baseId.length === 0) {
-                continue;
+            const baseString = lineToInlinePlainString(line);
+            if (baseString.length > 0) {
+                cell.id = createId(baseString);
             }
-            const count = baseIdToCount[baseId] = (baseIdToCount[baseId] ?? 0) + 1;
-            const id = count > 1 || baseId.length === 0 ? `${baseId}~${count}` : baseId;
-            cell.id = id;
         }
     }
     const idSet = {};
@@ -693,15 +726,15 @@ export const cd = async (unit, compiler) => {
         let ymin = 0;
         let xmax = getCoordinate({ row: 0, column: columnWidths.length }).x;
         let ymax = getCoordinate({ row: rowHeights.length, column: 0 }).y;
-        function drawPieces(pieces, g) {
+        function drawPieces(pieces, width, g) {
             const drawArray = [];
             for (const piece of pieces) {
                 drawArray.push(piece.toSVG());
                 const { x, y } = piece.bbox();
-                const xmin0 = x.min - arrowWidth;
-                const xmax0 = x.max + arrowWidth;
-                const ymin0 = y.min - arrowWidth;
-                const ymax0 = y.max + arrowWidth;
+                const xmin0 = x.min - width / 2;
+                const xmax0 = x.max + width / 2;
+                const ymin0 = y.min - width / 2;
+                const ymax0 = y.max + width / 2;
                 if (xmin0 < xmin) {
                     xmin = xmin0;
                 }
@@ -717,32 +750,32 @@ export const cd = async (unit, compiler) => {
             }
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path.setAttribute('d', drawArray.join(' '));
-            path.style.strokeWidth = arrowWidth + 'px';
+            path.style.strokeWidth = width + 'px';
             path.style.fill = 'none';
             g.append(path);
             return drawArray;
         }
-        function drawBezier(bezier, shift, g) {
+        function drawBezier(bezier, width, shift, g) {
             const pieces = bezier.offset(-shift);
             if (Array.isArray(pieces)) {
-                return drawPieces(pieces, g);
+                return drawPieces(pieces, width, g);
             }
             return [];
         }
-        function drawBezierToSquiggle(bezier, shift, g) {
+        function drawBezierToSquiggle(bezier, width, shift, g) {
             const pieces = bezier.offset(-shift);
             if (Array.isArray(pieces)) {
-                return drawPieces(piecesToSquiggle(pieces), g);
+                return drawPieces(piecesToSquiggle(pieces), width, g);
             }
             return [];
         }
         const appendedArrows = [];
         const masks = [];
         const maskRects = [];
-        function addMask({ data, clear, num }) {
+        function addMask({ data, clear }) {
             for (let i = 0; i < appendedArrows.length; i++) {
                 const arrow = appendedArrows[i];
-                check: if (clear !== true) {
+                check: if (typeof clear !== 'number') {
                     for (const className of clear) {
                         if (arrow.classList.contains(className)) {
                             break check;
@@ -750,7 +783,7 @@ export const cd = async (unit, compiler) => {
                     }
                     continue;
                 }
-                else if (i >= num) {
+                else if (i >= clear) {
                     break;
                 }
                 let mask = masks[i];
@@ -765,12 +798,12 @@ export const cd = async (unit, compiler) => {
                     mask.id = id;
                     arrow.style.mask = `url(#${id})`;
                 }
-                if (typeof data === 'string') {
+                if (data.type === 'path') {
                     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                    path.style.strokeWidth = arrowClear + 'px';
+                    path.style.strokeWidth = data.width + 'px';
                     path.style.stroke = 'black';
                     path.style.fill = 'none';
-                    path.setAttribute('d', data);
+                    path.setAttribute('d', data.drawString);
                     mask.append(path);
                     continue;
                 }
@@ -785,7 +818,7 @@ export const cd = async (unit, compiler) => {
             }
         }
         const maskDataArray = [];
-        for (const { from, to, out, in: arrowIn, bend, head, tail, shift, body, class: classStr, style, labels, clear } of orderedArrows) {
+        for (const { from, to, out, in: arrowIn, bend, head, tail, shift, body, class: classStr, style, labels, clear, margin, width } of orderedArrows) {
             let fromCoordinate;
             let toCoordinate;
             let fromBox;
@@ -917,14 +950,14 @@ export const cd = async (unit, compiler) => {
             const drawArray = [];
             let mayEmpty = false;
             if (body === 'two') {
-                drawArray.push(...drawBezier(bezier, shift + twoArrowBodyShift, g));
-                drawArray.push(...drawBezier(bezier, shift - twoArrowBodyShift, g));
+                drawArray.push(...drawBezier(bezier, width, shift + twoArrowBodyShift, g));
+                drawArray.push(...drawBezier(bezier, width, shift - twoArrowBodyShift, g));
             }
             else if (body === 'squiggle') {
-                drawArray.push(...drawBezierToSquiggle(bezier, shift, g));
+                drawArray.push(...drawBezierToSquiggle(bezier, width, shift, g));
             }
             else {
-                drawArray.push(...drawBezier(bezier, shift, g));
+                drawArray.push(...drawBezier(bezier, width, shift, g));
                 mayEmpty = true;
             }
             {
@@ -934,7 +967,7 @@ export const cd = async (unit, compiler) => {
                 };
                 const pieces = createArrowMark(head, endD, base);
                 if (pieces.length > 0) {
-                    drawArray.push(...drawPieces(pieces, g));
+                    drawArray.push(...drawPieces(pieces, width, g));
                     mayEmpty = false;
                 }
             }
@@ -945,28 +978,31 @@ export const cd = async (unit, compiler) => {
                 };
                 const pieces = createArrowMark(tail, startD, base);
                 if (pieces.length > 0) {
-                    drawArray.push(...drawPieces(pieces, g));
+                    drawArray.push(...drawPieces(pieces, width, g));
                     mayEmpty = false;
                 }
             }
             if (clear !== false && drawArray.length > 0) {
                 maskDataArray.push({
-                    data: drawArray.join(' '),
-                    clear,
-                    num: appendedArrows.length
+                    data: {
+                        type: 'path',
+                        drawString: drawArray.join(' '),
+                        width: 2 * margin + width
+                    },
+                    clear: clear === true ? appendedArrows.length : clear
                 });
             }
             if (mayEmpty) {
                 const placeHolder = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
                 placeHolder.setAttribute('x', '0');
                 placeHolder.setAttribute('y', '0');
-                placeHolder.setAttribute('width', arrowWidth.toString());
-                placeHolder.setAttribute('height', arrowWidth.toString());
+                placeHolder.setAttribute('width', width.toString());
+                placeHolder.setAttribute('height', width.toString());
                 placeHolder.style.stroke = placeHolder.style.fill = 'none';
                 g.append(placeHolder);
             }
             appendedArrows.push(g);
-            for (const { at, shift: labelShift, id, clear } of labels) {
+            for (const { at, shift: labelShift, id, clear, margin } of labels) {
                 const root = bezier.get(at);
                 const normal = bezier.normal(at);
                 let allShift = shift + labelShift;
@@ -982,7 +1018,7 @@ export const cd = async (unit, compiler) => {
                 if (labelElement === undefined) {
                     throw new Error();
                 }
-                const box = absoluteElementToBox(labelElement, heightScale, widthScale, labelMargin);
+                const box = absoluteElementToBox(labelElement, heightScale, widthScale, margin);
                 idToBox[id] = box;
                 const xmin0 = base.x - box.width / 2;
                 const xmax0 = base.x + box.width / 2;
@@ -1003,13 +1039,13 @@ export const cd = async (unit, compiler) => {
                 if (clear !== false) {
                     maskDataArray.push({
                         data: {
+                            type: 'box',
                             x: xmin0.toString(),
                             y: ymin0.toString(),
                             width: box.width.toString(),
                             height: box.height.toString()
                         },
-                        clear,
-                        num: appendedArrows.length
+                        clear: clear === true ? appendedArrows.length : clear
                     });
                 }
             }
@@ -1050,21 +1086,8 @@ export const cd = async (unit, compiler) => {
             return;
         }
         observer.disconnect();
-        let width;
-        let height;
-        let count = 0;
-        const total = 1;
-        while (true) {
+        for (let i = 0; i < drawNum; i++) {
             draw();
-            const { width: width0, height: height0 } = element.getBoundingClientRect();
-            if (width0 === width && height0 === height) {
-                count++;
-                if (count === total) {
-                    break;
-                }
-            }
-            width = width0;
-            height = height0;
             await new Promise(r => setTimeout(r, 1000));
         }
     });

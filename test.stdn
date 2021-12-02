@@ -72,7 +72,7 @@
     T
     {to 2 1, bend, ar, 'x'}
     {to 1 2, bend right, ar, 'y'}
-    {to 1 1, class dotted, ar [{shift 0, clear, '(x,y)'}]}
+    {to 1 1, class dotted, ar [{shift 0, margin 0, clear, '(x,y)'}]}
     \\
     &
     X\times_Z Y
@@ -350,10 +350,12 @@
     \cdots
 ]}
 []
-{cd [
+{gap - 0, cell-margin 0, cd [
+    []
+    \\
     {style border:1px solid var(--color-border); width:1.5em; text-align:center, div [{'A'}]}
     {ar []}
-    {to 1.667 -0.667, style color:var(--color-modifier), ar []}
+    {to 2 -0.5, style color:var(--color-modifier), ar []}
     {to 2 -1, style color:var(--color-warn), ar []}
     &
     {style border:1px solid var(--color-border); width:1.5em; text-align:center, div [{'B'}]}
@@ -530,5 +532,12 @@
     ]}]}
     &
     C\oplus D
+]}
+[]
+{cd [
+    []
+    {width 0.08, tail arrow, ar []}
+    &
+    []
 ]}
 []
