@@ -1,4 +1,4 @@
-import { UnitCompiler } from '@ddu6/stc';
+import { UnitCompiler } from '@ddu6/stc/dist/countext';
 import { Bezier } from 'bezier-js';
 declare type ArrowMark = 'arrow' | 'arrow2' | 'arrow3' | 'bar' | 'bar2' | 'bar3' | 'harpoon' | '-harpoon' | 'hook' | '-hook' | 'loop' | '-loop' | 'tail' | 'two' | 'none';
 export interface Coordinate {

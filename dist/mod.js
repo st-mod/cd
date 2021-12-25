@@ -1,4 +1,5 @@
-import { lineToInlinePlainString, unitToInlinePlainString, stringToId, getLastGlobalOption } from '@ddu6/stc';
+import { lineToInlinePlainString, stringToId, unitToInlinePlainString } from '@ddu6/stc/dist/base';
+import { getLastGlobalOption } from '@ddu6/stc/dist/countext';
 import { Bezier } from 'bezier-js';
 const defaultRowGap = 1.8;
 const defaultColumnGap = 2.4;
