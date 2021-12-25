@@ -17,7 +17,7 @@ function parseDrawDelay(option) {
     if (typeof option === 'number' && isFinite(option) && option >= 0) {
         return option * 1000;
     }
-    return 1000;
+    return 0;
 }
 function parseDrawNum(option) {
     if (typeof option === 'number' && isFinite(option) && option >= 1 && option % 1 === 0) {
