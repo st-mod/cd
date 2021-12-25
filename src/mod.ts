@@ -90,6 +90,12 @@ interface MaskData{
     }
     clear:number|string[],
 }
+function parseDrawDelay(option:STDNUnitOptions[string]){
+    if(typeof option==='number'&&isFinite(option)&&option>=0){
+        return option*1000
+    }
+    return 1000
+}
 function parseDrawNum(option:STDNUnitOptions[string]){
     if(typeof option==='number'&&isFinite(option)&&option>=1&&option%1===0){
         return option
@@ -581,6 +587,7 @@ export function placeAbsoluteElement(element:AbsoluteElement,coordinate:Coordina
     element.topControler.style.height=coordinate.y+'em'
 }
 export const cd:UnitCompiler=async (unit,compiler)=>{
+    const drawDelay=parseDrawDelay(unit.options['draw-delay']??getLastGlobalOption('draw-delay','cd',compiler.context.tagToGlobalOptions))
     const drawNum=parseDrawNum(unit.options['draw-num']??getLastGlobalOption('draw-num','cd',compiler.context.tagToGlobalOptions))
     const gap=parseGap(unit.options.gap??getLastGlobalOption('gap','cd',compiler.context.tagToGlobalOptions))
     const cellMargin=parseMargin(unit.options['cell-margin']??getLastGlobalOption('cell-margin','cd',compiler.context.tagToGlobalOptions),'cell')
@@ -1236,6 +1243,7 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
             return
         }
         observer.disconnect()
+        await new Promise(r=>setTimeout(r,drawDelay))
         for(let i=0;i<drawNum;i++){
             draw()
             await new Promise(r=>setTimeout(r,1000))
