@@ -1,5 +1,3 @@
-import { lineToInlinePlainString, stringToId, unitToInlinePlainString } from '@ddu6/stc/dist/base';
-import { getLastGlobalOption } from '@ddu6/stc/dist/countext';
 import { Bezier } from 'bezier-js';
 const defaultRowGap = 1.8;
 const defaultColumnGap = 2.4;
@@ -510,10 +508,10 @@ export function placeAbsoluteElement(element, coordinate) {
     element.topControler.style.height = coordinate.y + 'em';
 }
 export const cd = async (unit, compiler) => {
-    const drawDelay = parseDrawDelay(unit.options['draw-delay'] ?? getLastGlobalOption('draw-delay', 'cd', compiler.context.tagToGlobalOptions));
-    const drawNum = parseDrawNum(unit.options['draw-num'] ?? getLastGlobalOption('draw-num', 'cd', compiler.context.tagToGlobalOptions));
-    const gap = parseGap(unit.options.gap ?? getLastGlobalOption('gap', 'cd', compiler.context.tagToGlobalOptions));
-    const cellMargin = parseMargin(unit.options['cell-margin'] ?? getLastGlobalOption('cell-margin', 'cd', compiler.context.tagToGlobalOptions), 'cell');
+    const drawDelay = parseDrawDelay(unit.options['draw-delay'] ?? compiler.extractor.extractLastGlobalOption('draw-delay', 'cd', compiler.context.tagToGlobalOptions));
+    const drawNum = parseDrawNum(unit.options['draw-num'] ?? compiler.extractor.extractLastGlobalOption('draw-num', 'cd', compiler.context.tagToGlobalOptions));
+    const gap = parseGap(unit.options.gap ?? compiler.extractor.extractLastGlobalOption('gap', 'cd', compiler.context.tagToGlobalOptions));
+    const cellMargin = parseMargin(unit.options['cell-margin'] ?? compiler.extractor.extractLastGlobalOption('cell-margin', 'cd', compiler.context.tagToGlobalOptions), 'cell');
     const element = document.createElement('div');
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     element.classList.add('cd');
@@ -531,7 +529,7 @@ export const cd = async (unit, compiler) => {
     const arrows = [];
     const baseIdToCount = {};
     function createId(baseString) {
-        const baseId = stringToId(baseString);
+        const baseId = compiler.base.stringToId(baseString);
         const count = baseIdToCount[baseId] = (baseIdToCount[baseId] ?? 0) + 1;
         return count > 1 || baseId.length === 0 ? `${baseId}~${count}` : baseId;
     }
@@ -556,12 +554,12 @@ export const cd = async (unit, compiler) => {
             let baseString = first.options['cd-id'];
             if (at !== undefined || shift !== undefined || margin !== undefined || baseString !== undefined) {
                 if (typeof baseString !== 'string') {
-                    baseString = unitToInlinePlainString(first);
+                    baseString = compiler.base.unitToInlinePlainString(first);
                 }
                 labels.push({
                     at: parseLabelAt(at),
                     shift: parseLabelShift(shift),
-                    margin: parseMargin(margin ?? unit.options['label-margin'] ?? getLastGlobalOption('label-margin', 'cd', compiler.context.tagToGlobalOptions), 'label'),
+                    margin: parseMargin(margin ?? unit.options['label-margin'] ?? compiler.extractor.extractLastGlobalOption('label-margin', 'cd', compiler.context.tagToGlobalOptions), 'label'),
                     unit: first,
                     id: createId(baseString),
                     clear: parseClear(first.options.clear)
@@ -571,11 +569,11 @@ export const cd = async (unit, compiler) => {
             main.children.push(line);
         }
         if (main.children.length > 0) {
-            const baseString = unitToInlinePlainString(main);
+            const baseString = compiler.base.unitToInlinePlainString(main);
             labels.push({
                 at: .5,
                 shift: defaultLabelShift,
-                margin: parseMargin(unit.options['label-margin'] ?? getLastGlobalOption('label-margin', 'cd', compiler.context.tagToGlobalOptions), 'label'),
+                margin: parseMargin(unit.options['label-margin'] ?? compiler.extractor.extractLastGlobalOption('label-margin', 'cd', compiler.context.tagToGlobalOptions), 'label'),
                 unit: main,
                 id: createId(baseString),
                 clear: false
@@ -621,8 +619,8 @@ export const cd = async (unit, compiler) => {
                     in: parseControl(first.options.in),
                     bend: parseControl(first.options.bend),
                     shift: parseArrowShift(first.options.shift),
-                    margin: parseMargin(first.options.margin ?? unit.options['arrow-margin'] ?? getLastGlobalOption('arrow-margin', 'cd', compiler.context.tagToGlobalOptions), 'arrow'),
-                    width: parseArrowWidth(first.options.width ?? unit.options['arrow-width'] ?? getLastGlobalOption('arrow-width', 'cd', compiler.context.tagToGlobalOptions)),
+                    margin: parseMargin(first.options.margin ?? unit.options['arrow-margin'] ?? compiler.extractor.extractLastGlobalOption('arrow-margin', 'cd', compiler.context.tagToGlobalOptions), 'arrow'),
+                    width: parseArrowWidth(first.options.width ?? unit.options['arrow-width'] ?? compiler.extractor.extractLastGlobalOption('arrow-width', 'cd', compiler.context.tagToGlobalOptions)),
                     body,
                     head: parseArrowMark(first.options.head, 'head', body),
                     tail: parseArrowMark(first.options.tail, 'tail', body),
@@ -636,7 +634,7 @@ export const cd = async (unit, compiler) => {
         }
         cell.children.push(line);
         if (cell.id.length === 0) {
-            const baseString = lineToInlinePlainString(line);
+            const baseString = compiler.base.lineToInlinePlainString(line);
             if (baseString.length > 0) {
                 cell.id = createId(baseString);
             }
