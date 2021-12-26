@@ -1,136 +1,161 @@
-{css-src main.css, ucs-src ucs.js, global []}
-{mod beamer/core, global []}
-{css beamer/addon, global []}
-{class vcenter, frame [{title [Test]}]}
-{class vcenter, frame [{display [{CD [
-    &
-    &
-    \cdots
-    \\
-    H_n(A)
-    {from 2 -1, to 0, out 0, in 180, class dashed, ar []}
-    {ar, 'i_*'}
-    &
-    H_n(X)
-    {ar, 'j_*'}
-    &
-    'H_n(X,A)'
-    {to -2 1, out 0, in 180, style color:var(--color-variable), ar [{at 0.3, '\partial_*'}]}
-    \\
-    'H_{n-1}(A)'
-    {ar, 'i_*'}
-    &
-    'H_{n-1}(X)'
-    {ar, 'j_*'}
-    &
-    'H_{n-1}(X,A)'
-    {to -2 1, out 0, in 180, class dashed, ar []}
-    \\
-    \cdots
-]}]}]}
-[]
-{cd [
-    one
-    {ar []}
-    {to 0 1, ar []}
-    &
-    two
-    {to 0 1, ar []}
-    \\
-    three
-    {ar []}
-    &
-    four
+{title [Test]}
+{mod demo, global []}
+{mod page, global []}
+{page []}
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {mod beamer/core, global []}
+    {class vcenter, frame [{title [Test]}]}
+    {class vcenter, frame [{display [{CD [
+        &
+        &
+        \cdots
+        \\
+        H_n(A)
+        {from 2 -1, to 0, out 0, in 180, class dashed, ar []}
+        {ar, 'i_*'}
+        &
+        H_n(X)
+        {ar, 'j_*'}
+        &
+        'H_n(X,A)'
+        {to -2 1, out 0, in 180, style color:var(--color-variable), ar [{at 0.3, '\partial_*'}]}
+        \\
+        'H_{n-1}(A)'
+        {ar, 'i_*'}
+        &
+        'H_{n-1}(X)'
+        {ar, 'j_*'}
+        &
+        'H_{n-1}(X,A)'
+        {to -2 1, out 0, in 180, class dashed, ar []}
+        \\
+        \cdots
+    ]}]}]}
 ]}
 []
-{CD [
-    A
-    {ar, '\phi'}
-    {to 0 1, style color:var(--color-warn), ar []}
-    &
-    B
-    {to 0 1, ar [{style color:var(--color-warn), '\psi'}]}
-    \\
-    C
-    {style color:var(--color-warn), ar [{style color:var(--color-modifier), '\eta'}]}
-    &
-    {style color:var(--color-modifier); display:inline-block; transform:rotate(15deg), 'D'}
-]}
-[]
-{CD [
-    A
-    {ar [
-        {at 0.3, '\phi'}
-        {shift right, '\psi'}
-        {at 0.7, '\eta'}
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {cd [
+        one
+        {ar []}
+        {to 0 1, ar []}
+        &
+        two
+        {to 0 1, ar []}
+        \\
+        three
+        {ar []}
+        &
+        four
     ]}
-    &
-    B
 ]}
 []
-{CD [
-    T
-    {to 2 1, bend, ar, 'x'}
-    {to 1 2, bend right, ar, 'y'}
-    {to 1 1, class dotted, ar [{shift 0, margin 0, clear, '(x,y)'}]}
-    \\
-    &
-    X\times_Z Y
-    {ar, 'p'}
-    {to 0 1, ar, 'q'}
-    &
-    X
-    {to 0 1, ar, 'f'}
-    \\
-    &
-    Y
-    {ar, 'g'}
-    &
-    Z
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {CD [
+        A
+        {ar, '\phi'}
+        {to 0 1, style color:var(--color-warn), ar []}
+        &
+        B
+        {to 0 1, ar [{style color:var(--color-warn), '\psi'}]}
+        \\
+        C
+        {style color:var(--color-warn), ar [{style color:var(--color-modifier), '\eta'}]}
+        &
+        {style color:var(--color-modifier); display:inline-block; transform:rotate(15deg), 'D'}
+    ]}
 ]}
 []
-{CD [
-    &
-    \pi_1(U_1)
-    {to 1 1, ar []}
-    {to 2 1, bend 20, ar, 'j_1'}
-    \\
-    \pi_1(U_1\cap U_2)
-    {to 1 -1, ar, 'i_1'}
-    {to 1 1, ar, 'i_2'}
-    &
-    &
-    '\pi_1(U_1)\ast_{\pi_1(U_1\cap U_2)}\pi_1(U_2)'
-    {class dashed, ar, '\simeq'}
-    &
-    \pi_1(X)
-    \\
-    &
-    \pi_1(U_2)
-    {to 1 -1, ar []}
-    {to 2 -1, bend -20, ar, 'j_2'}
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {CD [
+        A
+        {ar [
+            {at 0.3, '\phi'}
+            {shift right, '\psi'}
+            {at 0.7, '\eta'}
+        ]}
+        &
+        B
+    ]}
 ]}
 []
-{CD [
-    X
-    {tail hook, ar []}
-    {to 1 1, class dashed, ar []}
-    &
-    \bar X
-    {to 0 1, ar []}
-    \\
-    &
-    Y
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {CD [
+        T
+        {to 2 1, bend, ar, 'x'}
+        {to 1 2, bend right, ar, 'y'}
+        {to 1 1, class dotted, ar [{shift 0, margin 0, clear, '(x,y)'}]}
+        \\
+        &
+        X\times_Z Y
+        {ar, 'p'}
+        {to 0 1, ar, 'q'}
+        &
+        X
+        {to 0 1, ar, 'f'}
+        \\
+        &
+        Y
+        {ar, 'g'}
+        &
+        Z
+    ]}
 ]}
 []
-{CD [
-    A
-    {head two, tail tail, class dashed, ar []}
-    &
-    B
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {mod beamer/core, global []}
+    {class vcenter, frame [{title [Test]}]}
+    {class vcenter, frame [{display [{CD [
+        &
+        \pi_1(U_1)
+        {to 1 1, ar []}
+        {to 2 1, bend 20, ar, 'j_1'}
+        \\
+        \pi_1(U_1\cap U_2)
+        {to 1 -1, ar, 'i_1'}
+        {to 1 1, ar, 'i_2'}
+        &
+        &
+        '\pi_1(U_1)\ast_{\pi_1(U_1\cap U_2)}\pi_1(U_2)'
+        {class dashed, ar, '\simeq'}
+        &
+        \pi_1(X)
+        \\
+        &
+        \pi_1(U_2)
+        {to 1 -1, ar []}
+        {to 2 -1, bend -20, ar, 'j_2'}
+    ]}]}]}
 ]}
 []
-{frame [{two [
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {CD [
+        X
+        {tail hook, ar []}
+        {to 1 1, class dashed, ar []}
+        &
+        \bar X
+        {to 0 1, ar []}
+        \\
+        &
+        Y
+    ]}
+    {CD [
+        A
+        {head two, tail tail, class dashed, ar []}
+        &
+        B
+    ]}
+]}
+[]
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
     {CD [
         A
         {bend, ar []}
@@ -155,6 +180,10 @@
         &
         B
     ]}
+]}
+[]
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
     {CD [
         A
         {bend, tail bar, ar []}
@@ -179,6 +208,10 @@
         &
         B
     ]}
+]}
+[]
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
     {CD [
         A
         {bend, head harpoon, tail hook, ar []}
@@ -203,6 +236,10 @@
         &
         B
     ]}
+]}
+[]
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
     {CD [
         A
         {bend, head -harpoon, tail -loop, ar []}
@@ -239,317 +276,351 @@
         &
         B
     ]}
-]}]}
-[]
-{gap 1.2 -, CD [
-    &
-    A
-    {to -1 1, ar []}
-    {to 1 1, ar []}
-    \\
-    B
-    {to 2, ar []}
-    &
-    &
-    C
 ]}
 []
-{gap - 0.45, CD [
-    &
-    B
-    {to 0 2, ar []}
-    \\
-    A
-    {to 1 -1, ar []}
-    {to 1 1, ar []}
-    \\
-    &
-    C
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {gap 1.2 -, CD [
+        &
+        A
+        {to -1 1, ar []}
+        {to 1 1, ar []}
+        \\
+        B
+        {to 2, ar []}
+        &
+        &
+        C
+    ]}
+    {gap - 0.45, CD [
+        &
+        B
+        {to 0 2, ar []}
+        \\
+        A
+        {to 1 -1, ar []}
+        {to 1 1, ar []}
+        \\
+        &
+        C
+    ]}
 ]}
 []
-{CD [
-    A
-    {tail tail, ar []}
-    {to 1 1, ar []}
-    &
-    B
-    {to 0 1, head two, ar []}
-    \\
-    &
-    D
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {CD [
+        A
+        {tail tail, ar []}
+        {to 1 1, ar []}
+        &
+        B
+        {to 0 1, head two, ar []}
+        \\
+        &
+        D
+    ]}
+    {CD [
+        A
+        {to z, style color:var(--color-warn), ar []}
+        {to 1 1, style color:var(--color-modifier), ar []}
+        &
+        B
+        \\
+        {class hide, 'z'}
+        C
+        &
+        D
+        {from -1 -1, to 0 -1, style color:var(--color-keyword), ar []}
+    ]}
 ]}
 []
-{CD [
-    A
-    {to z, style color:var(--color-warn), ar []}
-    {to 1 1, style color:var(--color-modifier), ar []}
-    &
-    B
-    \\
-    {class hide, 'z'}
-    C
-    &
-    D
-    {from -1 -1, to 0 -1, style color:var(--color-keyword), ar []}
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {gap 1.8 -, CD [
+        A
+        {to 1 1, ar []}
+        {to 2, ar [{cd-id u, shift 0}]}
+        &
+        &
+        B
+        {to -1 1, ar []}
+        \\
+        &
+        C
+        {from u, to 0, body two, ar, '\psi'}
+    ]}
+    {CD [
+        A
+        {bend 50, ar [{cd-id u, shift 0}]}
+        {bend -50, ar [{cd-id d, shift 0}]}
+        &
+        B
+        {from u, to d, body two, ar []}
+    ]}
 ]}
 []
-{gap 1.8 -, CD [
-    A
-    {to 1 1, ar []}
-    {to 2, ar [{cd-id u, shift 0}]}
-    &
-    &
-    B
-    {to -1 1, ar []}
-    \\
-    &
-    C
-    {from u, to 0, body two, ar, '\psi'}
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {CD [
+        A
+        {ar []}
+        {to 0 1, ar []}
+        {to 1 1, class transparent, ar [{at 0.1, shift 0, normal-font-size, '\ulcorner'}]}
+        &
+        B
+        {to 0 1, ar []}
+        \\
+        C
+        {ar []}
+        &
+        D
+    ]}
 ]}
 []
-{CD [
-    A
-    {bend 50, ar [{cd-id u, shift 0}]}
-    {bend -50, ar [{cd-id d, shift 0}]}
-    &
-    B
-    {from u, to d, body two, ar []}
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {CD [
+        A
+        {shift, style color:var(--color-warn), ar []}
+        {ar []}
+        {to 1 1, shift right, style color:var(--color-modifier), ar []}
+        {to 1 1, ar []}
+        &
+        B
+        {to 0 1, shift, style color:var(--color-keyword), ar []}
+        {to 0 1, ar []}
+        \\
+        &
+        C
+    ]}
+    {CD [
+        A
+        {ar []}
+        &
+        B
+        {shift, ar []}
+        {shift right, ar []}
+        &
+        C
+        {shift 0.48, ar []}
+        {ar []}
+        {shift -0.48, ar []}
+        &
+        \cdots
+    ]}
 ]}
 []
-{CD [
-    A
-    {ar []}
-    {to 0 1, ar []}
-    {to 1 1, class transparent, ar [{at 0.1, shift 0, normal-font-size, '\ulcorner'}]}
-    &
-    B
-    {to 0 1, ar []}
-    \\
-    C
-    {ar []}
-    &
-    D
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {gap - 0, cell-margin 0, cd [
+        []
+        \\
+        {style border:1px solid var(--color-border); width:1.5em; text-align:center, div [{'A'}]}
+        {ar []}
+        {to 2 -0.5, style color:var(--color-modifier), ar []}
+        {to 2 -1, style color:var(--color-warn), ar []}
+        &
+        {style border:1px solid var(--color-border); width:1.5em; text-align:center, div [{'B'}]}
+    ]}
+    {CD [
+        A
+        {shift, ar []}
+        {from 0.3, to 0.7, shift right, ar []}
+        &
+        B
+    ]}
 ]}
 []
-{CD [
-    A
-    {shift, style color:var(--color-warn), ar []}
-    {ar []}
-    {to 1 1, shift right, style color:var(--color-modifier), ar []}
-    {to 1 1, ar []}
-    &
-    B
-    {to 0 1, shift, style color:var(--color-keyword), ar []}
-    {to 0 1, ar []}
-    \\
-    &
-    C
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {CD [
+        A
+        {to 1 1, ar []}
+        &
+        B
+        {to -1 1, clear, ar []}
+        \\
+        C
+        &
+        D
+    ]}
 ]}
 []
-{CD [
-    A
-    {ar []}
-    &
-    B
-    {shift, ar []}
-    {shift right, ar []}
-    &
-    C
-    {shift 0.48, ar []}
-    {ar []}
-    {shift -0.48, ar []}
-    &
-    \cdots
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {CD [
+        &
+        f^* E_V
+        {to -1 1, ar []}
+        {to 2, ar []}
+        {to 0 2, ar []}
+        &
+        &
+        E_V
+        {to -1 1, ar []}
+        {to 0 2, ar []}
+        \\
+        f^* E
+        {to 0 2, ar []}
+        {to 2, clear, ar []}
+        &
+        &
+        E
+        \\
+        &
+        U
+        {to -1 1, ar []}
+        {to 2, ar []}
+        &
+        &
+        V
+        {to -1 1, ar []}
+        \\
+        M
+        {to 2, ar []}
+        &
+        &
+        N
+        {from 0 -2, to 0, clear, ar []}
+    ]}
 ]}
 []
-{gap - 0, cell-margin 0, cd [
-    []
-    \\
-    {style border:1px solid var(--color-border); width:1.5em; text-align:center, div [{'A'}]}
-    {ar []}
-    {to 2 -0.5, style color:var(--color-modifier), ar []}
-    {to 2 -1, style color:var(--color-warn), ar []}
-    &
-    {style border:1px solid var(--color-border); width:1.5em; text-align:center, div [{'B'}]}
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {CD [
+        {from 0 1, to 3 1, shift, clear c3, ar []}
+        {from 0 1, to 3 1, shift right, clear c3, ar []}
+        {from 2, to 2 3, shift, clear, ar []}
+        {from 2, to 2 3, shift right, clear, ar []}
+        {from 3 2, to 0 2, shift, clear, class c1, ar []}
+        {from 3 2, to 0 2, shift right, clear, class c2, ar []}
+        {from 1 3, to 1, shift, clear c1 c2, class c3, ar []}
+        {from 1 3, to 1, shift right, clear c1 c2, class c3 c4, ar []}
+        &
+        \bigcirc
+        &
+        \bigcirc
+        \\
+        \bigcirc
+        &
+        &
+        &
+        \bigcirc
+        \\
+        \bigcirc
+        &
+        &
+        &
+        \bigcirc
+        \\
+        &
+        \bigcirc
+        &
+        \bigcirc
+    ]}
 ]}
 []
-{CD [
-    A
-    {shift, ar []}
-    {from 0.3, to 0.7, shift right, ar []}
-    &
-    B
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {CD [
+        A
+        {ar [{shift 0, '/'}]}
+        {to 1 1, ar [{shift 0, '\circ'}]}
+        &
+        B
+        \\
+        &
+        C
+    ]}
+    {CD [
+        A
+        {ar [{shift 0, clear, '\phi'}]}
+        &
+        B
+    ]}
+    {CD [
+        A
+        {head none, ar [{shift 0, clear, '\phi'}]}
+        &
+        B
+    ]}
 ]}
 []
-{CD [
-    A
-    {to 1 1, ar []}
-    &
-    B
-    {to -1 1, clear, ar []}
-    \\
-    C
-    &
-    D
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {CD [
+        A
+        {to 1 1, out 30 2, in 120 2, ar []}
+        {to 0 1, head none, class dashed, ar []}
+        \\
+        {class dashed, ar []}
+        &
+        B
+        {to 0, out 30 5, in -30 5, ar []}
+    ]}
+    {CD [
+        A
+        {ar []}
+        &
+        B
+        {ar []}
+        &
+        C
+        {to 1 0.5, out 0 2, in 0 2, head none, ar []}
+        {from 1 0.5, to -3 0.5, out 180, in 0, head none, ar [{at 0.1, '\delta'}]}
+        {from -3 0.5, to -2 1, out 180 2, in 180 2, ar []}
+        \\
+        D
+        {ar []}
+        &
+        E
+        {ar []}
+        &
+        F
+    ]}
 ]}
 []
-{CD [
-    &
-    f^* E_V
-    {to -1 1, ar []}
-    {to 2, ar []}
-    {to 0 2, ar []}
-    &
-    &
-    E_V
-    {to -1 1, ar []}
-    {to 0 2, ar []}
-    \\
-    f^* E
-    {to 0 2, ar []}
-    {to 2, clear, ar []}
-    &
-    &
-    E
-    \\
-    &
-    U
-    {to -1 1, ar []}
-    {to 2, ar []}
-    &
-    &
-    V
-    {to -1 1, ar []}
-    \\
-    M
-    {to 2, ar []}
-    &
-    &
-    N
-    {from 0 -2, to 0, clear, ar []}
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {gap - 2.7, CD [
+        []
+        {class transparent, ar [{shift 0, normal-font-size, 'X\otimes(Y\otimes(Z\otimes T))'}]}
+        \\
+        X\otimes((Y\otimes Z)\otimes T))
+        {from 0.3 -0.7, to 0, ar [{shift right, '1\otimes\phi'}]}
+        {to 0.2 0.7, ar [{shift right, '\phi'}]}
+        &
+        (X\otimes Y)\otimes(Z\otimes T)
+        {from -0.3 -0.7, to 0, ar, '\phi'}
+        {to -0.2 0.7, ar, '\phi'}
+        \\
+        (X\otimes(Y\otimes Z))\otimes T
+        {ar, '\phi\otimes1'}
+        &
+        ((X\otimes Y)\otimes Z)\otimes T
+    ]}
 ]}
 []
-{CD [
-    {from 0 1, to 3 1, shift, clear c3, ar []}
-    {from 0 1, to 3 1, shift right, clear c3, ar []}
-    {from 2, to 2 3, shift, clear, ar []}
-    {from 2, to 2 3, shift right, clear, ar []}
-    {from 3 2, to 0 2, shift, clear, class c1, ar []}
-    {from 3 2, to 0 2, shift right, clear, class c2, ar []}
-    {from 1 3, to 1, shift, clear c1 c2, class c3, ar []}
-    {from 1 3, to 1, shift right, clear c1 c2, class c3 c4, ar []}
-    &
-    \bigcirc
-    &
-    \bigcirc
-    \\
-    \bigcirc
-    &
-    &
-    &
-    \bigcirc
-    \\
-    \bigcirc
-    &
-    &
-    &
-    \bigcirc
-    \\
-    &
-    \bigcirc
-    &
-    \bigcirc
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {gap 3.6 -, CD [
+        A\oplus B
+        {ar [{shift 1, pmatrix [
+            e & f\\
+            g & h
+        ]}]}
+        &
+        C\oplus D
+    ]}
 ]}
 []
-{CD [
-    A
-    {ar [{shift 0, '/'}]}
-    {to 1 1, ar [{shift 0, '\circ'}]}
-    &
-    B
-    \\
-    &
-    C
-]}
-[]
-{CD [
-    A
-    {ar [{shift 0, clear, '\phi'}]}
-    &
-    B
-]}
-[]
-{CD [
-    A
-    {head none, ar [{shift 0, clear, '\phi'}]}
-    &
-    B
-]}
-[]
-{CD [
-    A
-    {to 1 1, out 30 2, in 120 2, ar []}
-    {to 0 1, head none, class dashed, ar []}
-    \\
-    {class dashed, ar []}
-    &
-    B
-    {to 0, out 30 5, in -30 5, ar []}
-]}
-[]
-{CD [
-    A
-    {ar []}
-    &
-    B
-    {ar []}
-    &
-    C
-    {to 1 0.5, out 0 2, in 0 2, head none, ar []}
-    {from 1 0.5, to -3 0.5, out 180, in 0, head none, ar [{at 0.1, '\delta'}]}
-    {from -3 0.5, to -2 1, out 180 2, in 180 2, ar []}
-    \\
-    D
-    {ar []}
-    &
-    E
-    {ar []}
-    &
-    F
-]}
-[]
-{gap - 2.7, CD [
-    []
-    {class transparent, ar [{shift 0, normal-font-size, 'X\otimes(Y\otimes(Z\otimes T))'}]}
-    \\
-    X\otimes((Y\otimes Z)\otimes T))
-    {from 0.3 -0.7, to 0, ar [{shift right, '1\otimes\phi'}]}
-    {to 0.2 0.7, ar [{shift right, '\phi'}]}
-    &
-    (X\otimes Y)\otimes(Z\otimes T)
-    {from -0.3 -0.7, to 0, ar, '\phi'}
-    {to -0.2 0.7, ar, '\phi'}
-    \\
-    (X\otimes(Y\otimes Z))\otimes T
-    {ar, '\phi\otimes1'}
-    &
-    ((X\otimes Y)\otimes Z)\otimes T
-]}
-[]
-{gap 3.6 -, CD [
-    A\oplus B
-    {ar [{shift 1, pmatrix [
-        e & f\\
-        g & h
-    ]}]}
-    &
-    C\oplus D
-]}
-[]
-{cd [
-    []
-    {width 0.08, tail arrow, ar []}
-    &
-    []
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {cd [
+        []
+        {width 0.08, tail arrow, ar []}
+        &
+        []
+    ]}
 ]}
 []

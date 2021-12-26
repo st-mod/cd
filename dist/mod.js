@@ -1163,17 +1163,28 @@ export const cd = async (unit, compiler) => {
             rect.setAttribute('height', height.toString());
         }
     }
-    const observer = new MutationObserver(async () => {
-        if (!element.isConnected) {
+    let observer;
+    let timer;
+    let listened = false;
+    const listener = async () => {
+        if (!element.isConnected || listened) {
             return;
         }
-        observer.disconnect();
+        listened = true;
+        if (observer !== undefined) {
+            observer.disconnect();
+        }
+        if (timer !== undefined) {
+            clearInterval(timer);
+        }
         await new Promise(r => setTimeout(r, drawDelay));
         for (let i = 0; i < drawNum; i++) {
             draw();
             await new Promise(r => setTimeout(r, 1000));
         }
-    });
+    };
+    observer = new MutationObserver(listener);
+    timer = window.setInterval(listener, 1000);
     observer.observe(document.body, { childList: true, subtree: true });
     return element;
 };
