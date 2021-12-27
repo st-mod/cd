@@ -3,8 +3,8 @@
 {mod page, global []}
 {page []}
 {demo [
-    {css-src main.css, ucs-src ucs.js, global []}
     {mod beamer/core, global []}
+    {css-src main.css, ucs-src ucs.js, global []}
     {class vcenter, frame [{title [Test]}]}
     {class vcenter, frame [{display [{CD [
         &
@@ -107,8 +107,8 @@
 ]}
 []
 {demo [
-    {css-src main.css, ucs-src ucs.js, global []}
     {mod beamer/core, global []}
+    {css-src main.css, ucs-src ucs.js, global []}
     {class vcenter, frame [{title [Test]}]}
     {class vcenter, frame [{display [{CD [
         &
