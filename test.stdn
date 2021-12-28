@@ -1,9 +1,10 @@
 {title [Test]}
-{mod demo, global []}
-{mod page, global []}
+{mod demo@0.6.2, global []}
+{mod page@0.2.1, global []}
+{global, no-count, demo []}
 {page []}
 {demo [
-    {mod beamer/core, global []}
+    {mod beamer@0.7.1/core, global []}
     {css-src main.css, ucs-src ucs.js, global []}
     {class vcenter, frame [{title [Test]}]}
     {class vcenter, frame [{display [{CD [
@@ -107,7 +108,7 @@
 ]}
 []
 {demo [
-    {mod beamer/core, global []}
+    {mod beamer@0.7.1/core, global []}
     {css-src main.css, ucs-src ucs.js, global []}
     {class vcenter, frame [{title [Test]}]}
     {class vcenter, frame [{display [{CD [
