@@ -7,10 +7,10 @@
     stroke-linecap: round;
 }
 
-.unit.cd>svg>g.dashed>path:first-child {
+.unit.cd>svg>g.dashed>path.body {
     stroke-dasharray: .3 .2;
 }
 
-.unit.cd>svg>g.dotted>path:first-child {
+.unit.cd>svg>g.dotted>path.body {
     stroke-dasharray: .06 .12;
 }

@@ -921,7 +921,7 @@ function draw(cellElements:CellElement[],orderedArrows:Arrow[],idToLabelElement:
     let ymin=0
     let xmax=getCoordinate({row:0,column:columnWidths.length}).x
     let ymax=getCoordinate({row:rowHeights.length,column:0}).y
-    function drawPieces(pieces:Bezier[],width:number,g:SVGGElement){
+    function drawPieces(pieces:Bezier[],width:number,g:SVGGElement,classStr?:string){
         const drawArray:string[]=[]
         for(const piece of pieces){
             drawArray.push(piece.toSVG())
@@ -947,20 +947,27 @@ function draw(cellElements:CellElement[],orderedArrows:Arrow[],idToLabelElement:
         path.setAttribute('d',drawArray.join(' '))
         path.style.strokeWidth=width+'px'
         path.style.fill='none'
+        if(classStr!==undefined){
+            try{
+                path.setAttribute('class',classStr)
+            }catch(err){
+                console.log(err)
+            }
+        }
         g.append(path)
         return drawArray
     }
-    function drawBezier(bezier:Bezier,width:number,shift:number,g:SVGGElement){
+    function drawBezier(bezier:Bezier,width:number,shift:number,g:SVGGElement,classStr?:string){
         const pieces=bezier.offset(-shift)
         if(Array.isArray(pieces)){
-            return drawPieces(pieces,width,g)
+            return drawPieces(pieces,width,g,classStr)
         }
         return []
     }
-    function drawBezierToSquiggle(bezier:Bezier,width:number,shift:number,g:SVGGElement){
+    function drawBezierToSquiggle(bezier:Bezier,width:number,shift:number,g:SVGGElement,classStr?:string){
         const pieces=bezier.offset(-shift)
         if(Array.isArray(pieces)){
-            return drawPieces(piecesToSquiggle(pieces),width,g)
+            return drawPieces(piecesToSquiggle(pieces),width,g,classStr)
         }
         return []
     }
@@ -1125,16 +1132,16 @@ function draw(cellElements:CellElement[],orderedArrows:Arrow[],idToLabelElement:
         const drawArray:string[]=[]
         let mayEmpty=false
         if(body==='three'){
-            drawArray.push(...drawBezier(bezier,width,shift+2*twoArrowBodyShift,g))
-            drawArray.push(...drawBezier(bezier,width,shift,g))
-            drawArray.push(...drawBezier(bezier,width,shift-2*twoArrowBodyShift,g))
+            drawArray.push(...drawBezier(bezier,width,shift+2*twoArrowBodyShift,g,'body'))
+            drawArray.push(...drawBezier(bezier,width,shift,g,'body'))
+            drawArray.push(...drawBezier(bezier,width,shift-2*twoArrowBodyShift,g,'body'))
         }else if(body==='two'){
-            drawArray.push(...drawBezier(bezier,width,shift+twoArrowBodyShift,g))
-            drawArray.push(...drawBezier(bezier,width,shift-twoArrowBodyShift,g))
+            drawArray.push(...drawBezier(bezier,width,shift+twoArrowBodyShift,g,'body'))
+            drawArray.push(...drawBezier(bezier,width,shift-twoArrowBodyShift,g,'body'))
         }else if(body==='squiggle'){
-            drawArray.push(...drawBezierToSquiggle(bezier,width,shift,g))
+            drawArray.push(...drawBezierToSquiggle(bezier,width,shift,g,'body'))
         }else{
-            drawArray.push(...drawBezier(bezier,width,shift,g))
+            drawArray.push(...drawBezier(bezier,width,shift,g,'body'))
             mayEmpty=true
         }
         {
@@ -1144,7 +1151,7 @@ function draw(cellElements:CellElement[],orderedArrows:Arrow[],idToLabelElement:
             }
             const pieces=createArrowMark(head,endD,base)
             if(pieces.length>0){
-                drawArray.push(...drawPieces(pieces,width,g))
+                drawArray.push(...drawPieces(pieces,width,g,'head'))
                 mayEmpty=false
             }
         }
@@ -1155,7 +1162,7 @@ function draw(cellElements:CellElement[],orderedArrows:Arrow[],idToLabelElement:
             }
             const pieces=createArrowMark(tail,startD,base)
             if(pieces.length>0){
-                drawArray.push(...drawPieces(pieces,width,g))
+                drawArray.push(...drawPieces(pieces,width,g,'tail'))
                 mayEmpty=false
             }
         }
