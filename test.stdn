@@ -180,7 +180,7 @@
     ]}
     {CD [
         A
-        {bend, body two, head none, tail arrow, ar []}
+        {bend, body two, head none, tail arrow, class dashed, ar []}
         &
         B
     ]}
@@ -208,7 +208,7 @@
     ]}
     {CD [
         A
-        {bend, body three, head bar, tail arrow, ar []}
+        {bend, body three, head bar, tail arrow, class dotted, ar []}
         &
         B
     ]}
