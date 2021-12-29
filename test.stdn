@@ -1,40 +1,6 @@
 {title [Test]}
 {mod demo@0.6.2, global []}
-{mod page@0.2.2, global []}
 {global, no-count, demo []}
-{break-level 1, page []}
-{demo [
-    {mod beamer@0.7.2/core, global []}
-    {css-src main.css, ucs-src ucs.js, global []}
-    {class vcenter, frame [{title [Test]}]}
-    {class vcenter, frame [{display [{CD [
-        &
-        &
-        \cdots
-        \\
-        H_n(A)
-        {from 2 -1, to 0, out 0, in 180, class dashed, ar []}
-        {ar, 'i_*'}
-        &
-        H_n(X)
-        {ar, 'j_*'}
-        &
-        'H_n(X,A)'
-        {to -2 1, out 0, in 180, style color:var(--color-variable), ar [{at 0.3, '\partial_*'}]}
-        \\
-        'H_{n-1}(A)'
-        {ar, 'i_*'}
-        &
-        'H_{n-1}(X)'
-        {ar, 'j_*'}
-        &
-        'H_{n-1}(X,A)'
-        {to -2 1, out 0, in 180, class dashed, ar []}
-        \\
-        \cdots
-    ]}]}]}
-]}
-[]
 {h1 ["cd" vs "CD"]}
 {demo [
     {css-src main.css, ucs-src ucs.js, global []}
@@ -110,7 +76,7 @@
     ]}
 ]}
 []
-{h1 [Beamer]}
+{h1 [Beamer and Page]}
 {demo [
     {mod beamer@0.7.2/core, global []}
     {css-src main.css, ucs-src ucs.js, global []}
@@ -136,6 +102,38 @@
         {to 1 -1, ar []}
         {to 2 -1, bend -20, ar, 'j_2'}
     ]}]}]}
+]}
+[]
+{demo [
+    {mod page@0.2.2, global []}
+    {css-src main.css, ucs-src ucs.js, global []}
+    {size A5, page []}
+    {CD [
+        &
+        &
+        \cdots
+        \\
+        H_n(A)
+        {from 2 -1, to 0, out 0, in 180, class dashed, ar []}
+        {ar, 'i_*'}
+        &
+        H_n(X)
+        {ar, 'j_*'}
+        &
+        'H_n(X,A)'
+        {to -2 1, out 0, in 180, style color:var(--color-variable), ar [{at 0.3, '\partial_*'}]}
+        \\
+        'H_{n-1}(A)'
+        {ar, 'i_*'}
+        &
+        'H_{n-1}(X)'
+        {ar, 'j_*'}
+        &
+        'H_{n-1}(X,A)'
+        {to -2 1, out 0, in 180, class dashed, ar []}
+        \\
+        \cdots
+    ]}
 ]}
 []
 {h1 [Arrows]}
