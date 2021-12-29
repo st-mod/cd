@@ -640,6 +640,176 @@ function extractLabels(children:STDN,tag:string,baseIdToCount:BaseIdToCount,comp
     }
     return labels
 }
+interface IdSet{
+    [key:string]:true|undefined
+}
+interface ExtractCellElementsOptions extends ExtractLabelsOptions{
+    katex:boolean
+    arrowMarginOption:STDNUnitOptions[string]
+    arrowWidthOption:STDNUnitOptions[string]
+}
+async function extractCellElements(children:STDN,svg:SVGSVGElement,compiler:Compiler,options:ExtractCellElementsOptions){
+    let cell:Cell={
+        children:[],
+        id:''
+    }
+    let row=[cell]
+    const table=[row]
+    const arrows:Arrow[]=[]
+    const baseIdToCount:BaseIdToCount={}
+    for(const line of children){
+        if(line.length===0){
+            cell.children.push(line)
+            continue
+        }
+        main:{
+            const first=line[0]
+            if(typeof first==='string'){
+                if(first==='&'&&line.length===1){
+                    row.push(cell={
+                        children:[],
+                        id:''
+                    })
+                    continue
+                }
+                if(first==='\\'&&line.length===2&&line[1]==='\\'){
+                    table.push(row=[cell={
+                        children:[],
+                        id:''
+                    }])
+                    continue
+                }
+                break main
+            }
+            if(first.tag==='ar'||first.tag==='katex'&&first.options.ar===true){
+                const base:Position={
+                    row:table.length-1,
+                    column:row.length-1
+                }
+                const body=parseArrowBody(first.options.body)
+                const labels=extractLabels(first.children,first.tag,baseIdToCount,compiler,options)
+                const g=document.createElementNS('http://www.w3.org/2000/svg','g')
+                if(typeof first.options.class==='string'&&first.options.class.length>0){
+                    try{
+                        g.setAttribute('class',first.options.class)
+                    }catch(err){
+                        console.log(err)
+                    }
+                }
+                if(typeof first.options.style==='string'&&first.options.style.length>0){
+                    try{
+                        g.setAttribute('style',first.options.style)
+                    }catch(err){
+                        console.log(err)
+                    }
+                }
+                if(typeof first.options.slide==='string'&&first.options.slide.length>0){
+                    try{
+                        g.dataset.slide=first.options.slide
+                    }catch(err){
+                        console.log(err)
+                    }
+                }
+                svg.append(g)
+                arrows.push({
+                    from:parsePosition(first.options.from,'from',base),
+                    to:parsePosition(first.options.to,'to',base),
+                    out:parseControl(first.options.out),
+                    in:parseControl(first.options.in),
+                    bend:parseControl(first.options.bend),
+                    shift:parseArrowShift(first.options.shift),
+                    margin:parseMargin(first.options.margin??options.arrowMarginOption,'arrow'),
+                    width:parseArrowWidth(first.options.width??options.arrowWidthOption),
+                    body,
+                    head:parseArrowMark(first.options.head,'head',body),
+                    tail:parseArrowMark(first.options.tail,'tail',body),
+                    labels,
+                    g,
+                    clear:parseClear(first.options.clear)
+                })
+                continue
+            }
+        }
+        cell.children.push(line)
+        if(cell.id.length===0){
+            const baseString=compiler.base.lineToInlinePlainString(line)
+            if(baseString.length>0){
+                cell.id=createId(baseString,baseIdToCount,compiler)
+            }
+        }
+    }
+    const idSet:IdSet={}
+    const cellElements:CellElement[]=[]
+    for(let i=0;i<table.length;i++){
+        const row=table[i]
+        for(let j=0;j<row.length;j++){
+            const {children,id}=row[j]
+            if(children.length===0){
+                continue
+            }
+            cellElements.push({
+                element:createAbsoluteElement(options.katex?await compiler.compileUnit({
+                    tag:'katex',
+                    options:{},
+                    children
+                }):await compiler.compileSTDN(children),svg),
+                position:{
+                    row:i,
+                    column:j
+                },
+                id
+            })
+            if(id.length>0){
+                idSet[id]=true
+            }
+        }
+    }
+    return {
+        cellElements,
+        arrows,
+        idSet
+    }
+}
+async function orderArrows(arrows:Arrow[],idSet:IdSet,svg:SVGSVGElement,compiler:Compiler){
+    const idToLabelElement:IdToLabelElement={}
+    const orderedArrows:Arrow[]=[]
+    let remainingArrows=arrows
+    while(true){
+        const newRemainingArrows:Arrow[]=[]
+        for(const arrow of remainingArrows){
+            const {from,to}=arrow
+            if(typeof from==='string'){
+                if(!idSet[from]){
+                    newRemainingArrows.push(arrow)
+                    continue
+                }
+            }
+            if(typeof to==='string'){
+                if(!idSet[to]){
+                    newRemainingArrows.push(arrow)
+                    continue
+                }
+            }
+            orderedArrows.push(arrow)
+            for(const {unit,id} of arrow.labels){
+                const labelElement=createAbsoluteElement(await compiler.compileUnit(unit),svg)
+                if(unit.options['normal-font-size']!==true){
+                    labelElement.container.style.fontSize='var(--length-font-log)'
+                }
+                idToLabelElement[id]=labelElement
+                idSet[id]=true
+            }
+        }
+        if(remainingArrows.length===newRemainingArrows.length){
+            break
+        }
+        remainingArrows=newRemainingArrows
+    }
+    return {
+        orderedArrows,
+        idToLabelElement
+    }
+}
 interface IdToLabelElement{
     [key:string]:AbsoluteElement|undefined
 }
@@ -1105,157 +1275,13 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
     svg.style.left='0'
     svg.style.top='0'
     element.append(svg)
-    let cell:Cell={
-        children:[],
-        id:''
-    }
-    let row=[cell]
-    const table=[row]
-    const arrows:Arrow[]=[]
-    const baseIdToCount:BaseIdToCount={}
-    for(const line of unit.children){
-        if(line.length===0){
-            cell.children.push(line)
-            continue
-        }
-        main:{
-            const first=line[0]
-            if(typeof first==='string'){
-                if(first==='&'&&line.length===1){
-                    row.push(cell={
-                        children:[],
-                        id:''
-                    })
-                    continue
-                }
-                if(first==='\\'&&line.length===2&&line[1]==='\\'){
-                    table.push(row=[cell={
-                        children:[],
-                        id:''
-                    }])
-                    continue
-                }
-                break main
-            }
-            if(first.tag==='ar'||first.tag==='katex'&&first.options.ar===true){
-                const base:Position={
-                    row:table.length-1,
-                    column:row.length-1
-                }
-                const body=parseArrowBody(first.options.body)
-                const labels=extractLabels(first.children,first.tag,baseIdToCount,compiler,{labelMarginOption:unit.options['label-margin']??compiler.extractor.extractLastGlobalOption('label-margin','cd',compiler.context.tagToGlobalOptions)})
-                const g=document.createElementNS('http://www.w3.org/2000/svg','g')
-                if(typeof first.options.class==='string'&&first.options.class.length>0){
-                    try{
-                        g.setAttribute('class',first.options.class)
-                    }catch(err){
-                        console.log(err)
-                    }
-                }
-                if(typeof first.options.style==='string'&&first.options.style.length>0){
-                    try{
-                        g.setAttribute('style',first.options.style)
-                    }catch(err){
-                        console.log(err)
-                    }
-                }
-                if(typeof first.options.slide==='string'&&first.options.slide.length>0){
-                    try{
-                        g.dataset.slide=first.options.slide
-                    }catch(err){
-                        console.log(err)
-                    }
-                }
-                svg.append(g)
-                arrows.push({
-                    from:parsePosition(first.options.from,'from',base),
-                    to:parsePosition(first.options.to,'to',base),
-                    out:parseControl(first.options.out),
-                    in:parseControl(first.options.in),
-                    bend:parseControl(first.options.bend),
-                    shift:parseArrowShift(first.options.shift),
-                    margin:parseMargin(first.options.margin??unit.options['arrow-margin']??compiler.extractor.extractLastGlobalOption('arrow-margin','cd',compiler.context.tagToGlobalOptions),'arrow'),
-                    width:parseArrowWidth(first.options.width??unit.options['arrow-width']??compiler.extractor.extractLastGlobalOption('arrow-width','cd',compiler.context.tagToGlobalOptions)),
-                    body,
-                    head:parseArrowMark(first.options.head,'head',body),
-                    tail:parseArrowMark(first.options.tail,'tail',body),
-                    labels,
-                    g,
-                    clear:parseClear(first.options.clear)
-                })
-                continue
-            }
-        }
-        cell.children.push(line)
-        if(cell.id.length===0){
-            const baseString=compiler.base.lineToInlinePlainString(line)
-            if(baseString.length>0){
-                cell.id=createId(baseString,baseIdToCount,compiler)
-            }
-        }
-    }
-    const idSet:{
-        [key:string]:true|undefined
-    }={}
-    const cellElements:CellElement[]=[]
-    for(let i=0;i<table.length;i++){
-        const row=table[i]
-        for(let j=0;j<row.length;j++){
-            const {children,id}=row[j]
-            if(children.length===0){
-                continue
-            }
-            cellElements.push({
-                element:createAbsoluteElement(unit.tag==='CD'?await compiler.compileUnit({
-                    tag:'katex',
-                    options:{},
-                    children
-                }):await compiler.compileSTDN(children),svg),
-                position:{
-                    row:i,
-                    column:j
-                },
-                id
-            })
-            if(id.length>0){
-                idSet[id]=true
-            }
-        }
-    }
-    const idToLabelElement:IdToLabelElement={}
-    const orderedArrows:Arrow[]=[]
-    let remainingArrows=arrows
-    while(true){
-        const newRemainingArrows:Arrow[]=[]
-        for(const arrow of remainingArrows){
-            const {from,to}=arrow
-            if(typeof from==='string'){
-                if(!idSet[from]){
-                    newRemainingArrows.push(arrow)
-                    continue
-                }
-            }
-            if(typeof to==='string'){
-                if(!idSet[to]){
-                    newRemainingArrows.push(arrow)
-                    continue
-                }
-            }
-            orderedArrows.push(arrow)
-            for(const {unit,id} of arrow.labels){
-                const labelElement=createAbsoluteElement(await compiler.compileUnit(unit),svg)
-                if(unit.options['normal-font-size']!==true){
-                    labelElement.container.style.fontSize='var(--length-font-log)'
-                }
-                idToLabelElement[id]=labelElement
-                idSet[id]=true
-            }
-        }
-        if(remainingArrows.length===newRemainingArrows.length){
-            break
-        }
-        remainingArrows=newRemainingArrows
-    }
+    const {cellElements,arrows,idSet}=await extractCellElements(unit.children,svg,compiler,{
+        katex:unit.tag==='CD',
+        arrowMarginOption:unit.options['arrow-margin']??compiler.extractor.extractLastGlobalOption('arrow-margin','cd',compiler.context.tagToGlobalOptions),
+        arrowWidthOption:unit.options['arrow-width']??compiler.extractor.extractLastGlobalOption('arrow-width','cd',compiler.context.tagToGlobalOptions),
+        labelMarginOption:unit.options['label-margin']??compiler.extractor.extractLastGlobalOption('label-margin','cd',compiler.context.tagToGlobalOptions)
+    })
+    const {orderedArrows,idToLabelElement}=await orderArrows(arrows,idSet,svg,compiler)
     let observer:MutationObserver|undefined
     let timer:number|undefined
     let listened=false
