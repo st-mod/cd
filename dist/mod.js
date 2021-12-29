@@ -55,6 +55,12 @@ function parseGap(option) {
             column
         };
     }
+    if (isFinite(row) && row >= 0) {
+        return {
+            row,
+            column: defaultColumnGap
+        };
+    }
     return {
         row: defaultRowGap,
         column: defaultColumnGap

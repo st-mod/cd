@@ -132,6 +132,12 @@ function parseGap(option:STDNUnitOptions[string]):Position{
             column
         }
     }
+    if(isFinite(row)&&row>=0){
+        return {
+            row,
+            column:defaultColumnGap
+        }
+    }
     return {
         row:defaultRowGap,
         column:defaultColumnGap
