@@ -95,28 +95,40 @@ function parseDrawDelay(option:STDNUnitOptions[string]){
     return 0
 }
 function parseDrawNum(option:STDNUnitOptions[string]){
-    if(typeof option==='number'&&isFinite(option)&&option>=1&&option%1===0){
+    if(typeof option==='number'&&isFinite(option)&&option%1===0&&option>=1){
         return option
     }
     return 1
 }
 function parseGap(option:STDNUnitOptions[string]):Position{
-    if(typeof option==='number'&&isFinite(option)){
+    if(typeof option==='number'&&isFinite(option)&&option>=0){
         return {
             row:option,
             column:option
         }
     }
-    if(typeof option==='string'){
-        let [column,row]=option.split(/\s+/,2).map(Number)
-        if(!isFinite(column)||column<0){
-            column=defaultColumnGap
+    if(typeof option!=='string'){
+        return {
+            row:defaultRowGap,
+            column:defaultColumnGap
         }
-        if(!isFinite(row)||row<0){
-            row=defaultRowGap
+    }
+    const [column,row]=option.trim().split(/\s+/,2).map(Number)
+    if(isFinite(column)&&column>=0){
+        if(row===undefined){
+            return {
+                row:column,
+                column
+            }
+        }
+        if(isFinite(row)&&row>=0){
+            return {
+                row,
+                column
+            }
         }
         return {
-            row,
+            row:defaultRowGap,
             column
         }
     }
@@ -137,7 +149,7 @@ function parseMargin(option:STDNUnitOptions[string],type:'cell'|'arrow'|'label')
     }
     return defaultLabelMargin
 }
-function parsePosition(option:STDNUnitOptions[string],at:'from'|'to',base:Position):Position|string{
+function parsePosition(option:STDNUnitOptions[string],base:Position):Position|string{
     if(typeof option==='number'&&isFinite(option)){
         return {
             row:base.row,
@@ -145,18 +157,12 @@ function parsePosition(option:STDNUnitOptions[string],at:'from'|'to',base:Positi
         }
     }
     if(typeof option!=='string'){
-        if(at==='from'){
-            return {
-                row:base.row,
-                column:base.column
-            }
-        }
         return {
             row:base.row,
-            column:base.column+1
+            column:base.column
         }
     }
-    const [dcolumn,drow]=option.split(/\s+/,2).map(val=>Number(val??0))
+    const [dcolumn,drow]=option.trim().split(/\s+/,2).map(Number)
     if(isFinite(dcolumn)&&isFinite(drow)){
         return {
             row:base.row+drow,
@@ -164,6 +170,24 @@ function parsePosition(option:STDNUnitOptions[string],at:'from'|'to',base:Positi
         }
     }
     return option
+}
+function parseFromAndTo(from:STDNUnitOptions[string],to:STDNUnitOptions[string],base:Position){
+    if(from===undefined&&to===undefined){
+        return {
+            from:{
+                row:base.row,
+                column:base.column
+            },
+            to:{
+                row:base.row,
+                column:base.column+1
+            }
+        }
+    }
+    return {
+        from:parsePosition(from,base),
+        to:parsePosition(to,base)
+    }
 }
 function parseControl(option:STDNUnitOptions[string]):Control|undefined{
     if(typeof option==='number'&&isFinite(option)){
@@ -187,17 +211,20 @@ function parseControl(option:STDNUnitOptions[string]):Control|undefined{
     if(typeof option!=='string'){
         return undefined
     }
-    let [angle,strength]=option.split(/\s+/,2).map(Number)
-    if(!isFinite(angle)){
-        angle=0
+    const [angle,strength]=option.trim().split(/\s+/,2).map(Number)
+    if(isFinite(angle)){
+        if(strength!==undefined&&isFinite(strength)){
+            return {
+                angle,
+                strength
+            }
+        }
+        return {
+            angle,
+            strength:1
+        }
     }
-    if(!isFinite(strength)){
-        strength=1
-    }
-    return {
-        angle,
-        strength
-    }
+    return undefined
 }
 function parseArrowShift(option:STDNUnitOptions[string]){
     if(typeof option==='number'&&isFinite(option)){
@@ -686,6 +713,7 @@ async function extractCellElements(children:STDN,svg:SVGSVGElement,compiler:Comp
                     row:table.length-1,
                     column:row.length-1
                 }
+                const {from,to}=parseFromAndTo(first.options.from,first.options.to,base)
                 const body=parseArrowBody(first.options.body)
                 const labels=extractLabels(first.children,first.tag,baseIdToCount,compiler,options)
                 const g=document.createElementNS('http://www.w3.org/2000/svg','g')
@@ -712,8 +740,8 @@ async function extractCellElements(children:STDN,svg:SVGSVGElement,compiler:Comp
                 }
                 svg.append(g)
                 arrows.push({
-                    from:parsePosition(first.options.from,'from',base),
-                    to:parsePosition(first.options.to,'to',base),
+                    from,
+                    to,
                     out:parseControl(first.options.out),
                     in:parseControl(first.options.in),
                     bend:parseControl(first.options.bend),
