@@ -507,6 +507,510 @@ export function placeAbsoluteElement(element, coordinate) {
     element.leftControler.style.left = coordinate.x + 'em';
     element.topControler.style.height = coordinate.y + 'em';
 }
+function createId(baseString, baseIdToCount, compiler) {
+    const baseId = compiler.base.stringToId(baseString);
+    const count = baseIdToCount[baseId] = (baseIdToCount[baseId] ?? 0) + 1;
+    return count > 1 || baseId.length === 0 ? `${baseId}~${count}` : baseId;
+}
+function extractLabels(children, tag, baseIdToCount, compiler, options) {
+    const labels = [];
+    const main = {
+        tag: tag === 'katex' ? tag : 'div',
+        options: {},
+        children: []
+    };
+    for (const line of children) {
+        if (line.length === 0) {
+            main.children.push(line);
+            continue;
+        }
+        const first = line[0];
+        if (typeof first === 'string') {
+            main.children.push(line);
+            continue;
+        }
+        let { at, shift, margin } = first.options;
+        let baseString = first.options['cd-id'];
+        if (at !== undefined || shift !== undefined || margin !== undefined || baseString !== undefined) {
+            if (typeof baseString !== 'string') {
+                baseString = compiler.base.unitToInlinePlainString(first);
+            }
+            labels.push({
+                at: parseLabelAt(at),
+                shift: parseLabelShift(shift),
+                margin: parseMargin(margin ?? options.labelMarginOption, 'label'),
+                unit: first,
+                id: createId(baseString, baseIdToCount, compiler),
+                clear: parseClear(first.options.clear)
+            });
+            continue;
+        }
+        main.children.push(line);
+    }
+    if (main.children.length > 0) {
+        const baseString = compiler.base.unitToInlinePlainString(main);
+        labels.push({
+            at: .5,
+            shift: defaultLabelShift,
+            margin: parseMargin(options.labelMarginOption, 'label'),
+            unit: main,
+            id: createId(baseString, baseIdToCount, compiler),
+            clear: false
+        });
+    }
+    return labels;
+}
+function draw(cellElements, orderedArrows, idToLabelElement, svg, element, { gap, cellMargin }) {
+    svg.innerHTML = '';
+    const rowHeights = [];
+    const columnWidths = [];
+    const fontSize = Number(getComputedStyle(element).fontSize.slice(0, -2));
+    let heightScale = 1 / fontSize;
+    let widthScale = 1 / fontSize;
+    const fo = element.closest('foreignObject');
+    if (fo !== null) {
+        const { height, width } = fo.getBoundingClientRect();
+        heightScale *= fo.height.animVal.value / height;
+        widthScale *= fo.width.animVal.value / width;
+    }
+    const positionToBox = {};
+    const idToBox = {};
+    for (const { element, position, id } of cellElements) {
+        const box = absoluteElementToBox(element, heightScale, widthScale, cellMargin);
+        positionToBox[position.row + ' ' + position.column] = box;
+        if (id.length > 0) {
+            idToBox[id] = box;
+        }
+        if ((rowHeights[position.row] ?? 0) < box.height) {
+            rowHeights[position.row] = box.height;
+        }
+        if ((columnWidths[position.column] ?? 0) < box.width) {
+            columnWidths[position.column] = box.width;
+        }
+    }
+    function getCoordinate(position) {
+        let x = position.column >= 0 ? (columnWidths[0] ?? 0) / 2 : 0;
+        let y = position.row >= 0 ? (rowHeights[0] ?? 0) / 2 : 0;
+        for (let i = 1; i <= position.column; i++) {
+            const right = columnWidths[i - 1];
+            const left = columnWidths[i];
+            if (right !== undefined) {
+                x += right / 2;
+                if (left !== undefined) {
+                    x += gap.column;
+                }
+            }
+            if (left !== undefined) {
+                x += left / 2;
+            }
+        }
+        if (position.column % 1 !== 0) {
+            const i = Math.floor(position.column);
+            const right = columnWidths[i];
+            const left = columnWidths[i + 1];
+            if (right !== undefined) {
+                x += (position.column - i) * right / 2;
+                if (left !== undefined) {
+                    x += (position.column - i) * gap.column;
+                }
+            }
+            if (left !== undefined) {
+                x += (position.column - i) * left / 2;
+            }
+        }
+        for (let i = 1; i <= position.row; i++) {
+            const bottom = rowHeights[i - 1];
+            const top = rowHeights[i];
+            if (bottom !== undefined) {
+                y += bottom / 2;
+                if (top !== undefined) {
+                    y += gap.row;
+                }
+            }
+            if (top !== undefined) {
+                y += top / 2;
+            }
+        }
+        if (position.row % 1 !== 0) {
+            const i = Math.floor(position.row);
+            const bottom = rowHeights[i];
+            const top = rowHeights[i + 1];
+            if (bottom !== undefined) {
+                y += (position.row - i) * bottom / 2;
+                if (top !== undefined) {
+                    y += (position.row - i) * gap.row;
+                }
+            }
+            if (top !== undefined) {
+                y += (position.row - i) * top / 2;
+            }
+        }
+        return { x, y };
+    }
+    const idToCoordinate = {};
+    for (const { position, id } of cellElements) {
+        const coordinate = getCoordinate(position);
+        if (id.length > 0) {
+            idToCoordinate[id] = coordinate;
+        }
+    }
+    let xmin = 0;
+    let ymin = 0;
+    let xmax = getCoordinate({ row: 0, column: columnWidths.length }).x;
+    let ymax = getCoordinate({ row: rowHeights.length, column: 0 }).y;
+    function drawPieces(pieces, width, g) {
+        const drawArray = [];
+        for (const piece of pieces) {
+            drawArray.push(piece.toSVG());
+            const { x, y } = piece.bbox();
+            const xmin0 = x.min - width / 2;
+            const xmax0 = x.max + width / 2;
+            const ymin0 = y.min - width / 2;
+            const ymax0 = y.max + width / 2;
+            if (xmin0 < xmin) {
+                xmin = xmin0;
+            }
+            if (xmax0 > xmax) {
+                xmax = xmax0;
+            }
+            if (ymin0 < ymin) {
+                ymin = ymin0;
+            }
+            if (ymax0 > ymax) {
+                ymax = ymax0;
+            }
+        }
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', drawArray.join(' '));
+        path.style.strokeWidth = width + 'px';
+        path.style.fill = 'none';
+        g.append(path);
+        return drawArray;
+    }
+    function drawBezier(bezier, width, shift, g) {
+        const pieces = bezier.offset(-shift);
+        if (Array.isArray(pieces)) {
+            return drawPieces(pieces, width, g);
+        }
+        return [];
+    }
+    function drawBezierToSquiggle(bezier, width, shift, g) {
+        const pieces = bezier.offset(-shift);
+        if (Array.isArray(pieces)) {
+            return drawPieces(piecesToSquiggle(pieces), width, g);
+        }
+        return [];
+    }
+    const appendedArrows = [];
+    const masks = [];
+    const maskRects = [];
+    function addMask({ data, clear }) {
+        for (let i = 0; i < appendedArrows.length; i++) {
+            const arrow = appendedArrows[i];
+            check: if (typeof clear !== 'number') {
+                for (const className of clear) {
+                    if (arrow.classList.contains(className)) {
+                        break check;
+                    }
+                }
+                continue;
+            }
+            else if (i >= clear) {
+                break;
+            }
+            let mask = masks[i];
+            if (mask === undefined) {
+                mask = masks[i] = document.createElementNS('http://www.w3.org/2000/svg', 'mask');
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.style.fill = 'white';
+                svg.append(mask);
+                mask.append(rect);
+                maskRects.push(rect);
+                const id = Math.random().toString();
+                mask.id = id;
+                arrow.style.mask = `url(#${id})`;
+            }
+            if (data.type === 'path') {
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.style.strokeWidth = data.width + 'px';
+                path.style.stroke = 'black';
+                path.style.fill = 'none';
+                path.setAttribute('d', data.drawString);
+                mask.append(path);
+                continue;
+            }
+            const black = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            black.style.stroke = 'none';
+            black.style.fill = 'black';
+            black.setAttribute('x', data.x);
+            black.setAttribute('y', data.y);
+            black.setAttribute('width', data.width);
+            black.setAttribute('height', data.height);
+            mask.append(black);
+        }
+    }
+    const maskDataArray = [];
+    for (const { from, to, out, in: arrowIn, bend, head, tail, shift, body, g, labels, clear, margin, width } of orderedArrows) {
+        let fromCoordinate;
+        let toCoordinate;
+        let fromBox;
+        let toBox;
+        if (typeof from !== 'string') {
+            fromCoordinate = getCoordinate(from);
+            const box = positionToBox[from.row + ' ' + from.column];
+            if (box === undefined) {
+                fromBox = { height: 0, width: 0, top: 0, bottom: 0 };
+            }
+            else {
+                fromBox = box;
+            }
+        }
+        else {
+            const coordinate = idToCoordinate[from];
+            const box = idToBox[from];
+            if (coordinate === undefined || box === undefined) {
+                continue;
+            }
+            fromCoordinate = coordinate;
+            fromBox = box;
+        }
+        if (typeof to !== 'string') {
+            toCoordinate = getCoordinate(to);
+            const box = positionToBox[to.row + ' ' + to.column];
+            if (box === undefined) {
+                toBox = { height: 0, width: 0, top: 0, bottom: 0 };
+            }
+            else {
+                toBox = box;
+            }
+        }
+        else {
+            const coordinate = idToCoordinate[to];
+            const box = idToBox[to];
+            if (coordinate === undefined || box === undefined) {
+                continue;
+            }
+            toCoordinate = coordinate;
+            toBox = box;
+        }
+        let start;
+        let end;
+        let startD;
+        let endD;
+        let startStrength;
+        let endStrength;
+        if (out === undefined || arrowIn === undefined) {
+            const dx = toCoordinate.x - fromCoordinate.x;
+            const dy = toCoordinate.y - fromCoordinate.y;
+            const length = Math.sqrt(dx ** 2 + dy ** 2);
+            if (length === 0) {
+                continue;
+            }
+            const angle = dToAngle({ x: dx / length, y: dy / length });
+            let bendAngle = 0;
+            let bendStrength = 1;
+            if (bend !== undefined) {
+                bendAngle = bend.angle;
+                bendStrength = bend.strength;
+            }
+            if (out === undefined) {
+                const startAngle = angle + bendAngle;
+                start = getEdgePoint(startAngle, fromCoordinate, fromBox);
+                startD = angleToD(startAngle);
+                startStrength = bendStrength;
+            }
+            else {
+                start = getEdgePoint(out.angle, fromCoordinate, fromBox);
+                startD = angleToD(out.angle);
+                startStrength = out.strength;
+            }
+            if (arrowIn === undefined) {
+                const endAngle = angle + 180 - bendAngle;
+                end = getEdgePoint(endAngle, toCoordinate, toBox);
+                endD = angleToD(endAngle);
+                endStrength = bendStrength;
+            }
+            else {
+                end = getEdgePoint(arrowIn.angle, toCoordinate, toBox);
+                endD = angleToD(arrowIn.angle);
+                endStrength = arrowIn.strength;
+            }
+        }
+        else {
+            start = getEdgePoint(out.angle, fromCoordinate, fromBox);
+            end = getEdgePoint(arrowIn.angle, toCoordinate, toBox);
+            startD = angleToD(out.angle);
+            endD = angleToD(arrowIn.angle);
+            startStrength = out.strength;
+            endStrength = arrowIn.strength;
+        }
+        if (head === 'arrow2' || head === 'arrow3' || head === 'hook' || head === '-hook' || head === 'loop' || head === '-loop' || head === 'tail') {
+            end.x = end.x + endD.x * arrowBigMarkMargin;
+            end.y = end.y + endD.y * arrowBigMarkMargin;
+        }
+        if (tail === 'arrow2' || tail === 'arrow3' || tail === 'hook' || tail === '-hook' || tail === 'loop' || tail === '-loop' || tail === 'tail') {
+            start.x = start.x + startD.x * arrowBigMarkMargin;
+            start.y = start.y + startD.y * arrowBigMarkMargin;
+        }
+        const length = Math.sqrt((end.x - start.x) ** 2 + (end.y - start.y) ** 2);
+        if (length === 0) {
+            continue;
+        }
+        const startControl = {
+            x: start.x + startD.x * length / 3 * startStrength,
+            y: start.y + startD.y * length / 3 * startStrength
+        };
+        const endControl = {
+            x: end.x + endD.x * length / 3 * endStrength,
+            y: end.y + endD.y * length / 3 * endStrength
+        };
+        const bezier = new Bezier(start.x, start.y, startControl.x, startControl.y, endControl.x, endControl.y, end.x, end.y);
+        g.innerHTML = '';
+        svg.append(g);
+        const drawArray = [];
+        let mayEmpty = false;
+        if (body === 'three') {
+            drawArray.push(...drawBezier(bezier, width, shift + 2 * twoArrowBodyShift, g));
+            drawArray.push(...drawBezier(bezier, width, shift, g));
+            drawArray.push(...drawBezier(bezier, width, shift - 2 * twoArrowBodyShift, g));
+        }
+        else if (body === 'two') {
+            drawArray.push(...drawBezier(bezier, width, shift + twoArrowBodyShift, g));
+            drawArray.push(...drawBezier(bezier, width, shift - twoArrowBodyShift, g));
+        }
+        else if (body === 'squiggle') {
+            drawArray.push(...drawBezierToSquiggle(bezier, width, shift, g));
+        }
+        else {
+            drawArray.push(...drawBezier(bezier, width, shift, g));
+            mayEmpty = true;
+        }
+        {
+            const base = {
+                x: end.x - endD.y * shift,
+                y: end.y + endD.x * shift
+            };
+            const pieces = createArrowMark(head, endD, base);
+            if (pieces.length > 0) {
+                drawArray.push(...drawPieces(pieces, width, g));
+                mayEmpty = false;
+            }
+        }
+        {
+            const base = {
+                x: start.x + startD.y * shift,
+                y: start.y - startD.x * shift
+            };
+            const pieces = createArrowMark(tail, startD, base);
+            if (pieces.length > 0) {
+                drawArray.push(...drawPieces(pieces, width, g));
+                mayEmpty = false;
+            }
+        }
+        if (clear !== false && drawArray.length > 0) {
+            maskDataArray.push({
+                data: {
+                    type: 'path',
+                    drawString: drawArray.join(' '),
+                    width: 2 * margin + width
+                },
+                clear: clear === true ? appendedArrows.length : clear
+            });
+        }
+        if (mayEmpty) {
+            const placeHolder = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            placeHolder.setAttribute('x', '0');
+            placeHolder.setAttribute('y', '0');
+            placeHolder.setAttribute('width', width.toString());
+            placeHolder.setAttribute('height', width.toString());
+            placeHolder.style.stroke = placeHolder.style.fill = 'none';
+            g.append(placeHolder);
+        }
+        appendedArrows.push(g);
+        for (const { at, shift: labelShift, id, clear, margin } of labels) {
+            const root = bezier.get(at);
+            const normal = bezier.normal(at);
+            let allShift = shift + labelShift;
+            if (labelShift !== 0) {
+                if (body === 'three') {
+                    allShift += 2 * twoArrowBodyShift * Math.sign(labelShift);
+                }
+                else if (body === 'two' || body === 'squiggle') {
+                    allShift += twoArrowBodyShift * Math.sign(labelShift);
+                }
+            }
+            const base = {
+                x: root.x - normal.x * allShift,
+                y: root.y - normal.y * allShift
+            };
+            idToCoordinate[id] = base;
+            const labelElement = idToLabelElement[id];
+            if (labelElement === undefined) {
+                throw new Error();
+            }
+            const box = absoluteElementToBox(labelElement, heightScale, widthScale, margin);
+            idToBox[id] = box;
+            const xmin0 = base.x - box.width / 2;
+            const xmax0 = base.x + box.width / 2;
+            const ymin0 = base.y - box.top;
+            const ymax0 = base.y + box.bottom;
+            if (xmin0 < xmin) {
+                xmin = xmin0;
+            }
+            if (xmax0 > xmax) {
+                xmax = xmax0;
+            }
+            if (ymin0 < ymin) {
+                ymin = ymin0;
+            }
+            if (ymax0 > ymax) {
+                ymax = ymax0;
+            }
+            if (clear !== false) {
+                maskDataArray.push({
+                    data: {
+                        type: 'box',
+                        x: xmin0.toString(),
+                        y: ymin0.toString(),
+                        width: box.width.toString(),
+                        height: box.height.toString()
+                    },
+                    clear: clear === true ? appendedArrows.length : clear
+                });
+            }
+        }
+    }
+    maskDataArray.forEach(addMask);
+    const width = xmax - xmin;
+    const height = ymax - ymin;
+    element.style.width = svg.style.width = width + 'em';
+    element.style.height = svg.style.height = height + 'em';
+    svg.setAttribute('viewBox', `${xmin} ${ymin} ${width} ${height}`);
+    for (const { element, position } of cellElements) {
+        const coordinate = getCoordinate(position);
+        placeAbsoluteElement(element, {
+            x: coordinate.x - xmin,
+            y: coordinate.y - ymin
+        });
+    }
+    for (const id of Object.keys(idToLabelElement)) {
+        const labelElement = idToLabelElement[id];
+        const base = idToCoordinate[id];
+        if (labelElement === undefined || base === undefined) {
+            continue;
+        }
+        placeAbsoluteElement(labelElement, {
+            x: base.x - xmin,
+            y: base.y - ymin
+        });
+    }
+    for (const rect of maskRects) {
+        rect.setAttribute('x', xmin.toString());
+        rect.setAttribute('y', ymin.toString());
+        rect.setAttribute('width', width.toString());
+        rect.setAttribute('height', height.toString());
+    }
+}
 export const cd = async (unit, compiler) => {
     const drawDelay = parseDrawDelay(unit.options['draw-delay'] ?? compiler.extractor.extractLastGlobalOption('draw-delay', 'cd', compiler.context.tagToGlobalOptions));
     const drawNum = parseDrawNum(unit.options['draw-num'] ?? compiler.extractor.extractLastGlobalOption('draw-num', 'cd', compiler.context.tagToGlobalOptions));
@@ -528,59 +1032,6 @@ export const cd = async (unit, compiler) => {
     const table = [row];
     const arrows = [];
     const baseIdToCount = {};
-    function createId(baseString) {
-        const baseId = compiler.base.stringToId(baseString);
-        const count = baseIdToCount[baseId] = (baseIdToCount[baseId] ?? 0) + 1;
-        return count > 1 || baseId.length === 0 ? `${baseId}~${count}` : baseId;
-    }
-    function extractLabels(children, tag) {
-        const labels = [];
-        const main = {
-            tag: tag === 'katex' ? tag : 'div',
-            options: {},
-            children: []
-        };
-        for (const line of children) {
-            if (line.length === 0) {
-                main.children.push(line);
-                continue;
-            }
-            const first = line[0];
-            if (typeof first === 'string') {
-                main.children.push(line);
-                continue;
-            }
-            let { at, shift, margin } = first.options;
-            let baseString = first.options['cd-id'];
-            if (at !== undefined || shift !== undefined || margin !== undefined || baseString !== undefined) {
-                if (typeof baseString !== 'string') {
-                    baseString = compiler.base.unitToInlinePlainString(first);
-                }
-                labels.push({
-                    at: parseLabelAt(at),
-                    shift: parseLabelShift(shift),
-                    margin: parseMargin(margin ?? unit.options['label-margin'] ?? compiler.extractor.extractLastGlobalOption('label-margin', 'cd', compiler.context.tagToGlobalOptions), 'label'),
-                    unit: first,
-                    id: createId(baseString),
-                    clear: parseClear(first.options.clear)
-                });
-                continue;
-            }
-            main.children.push(line);
-        }
-        if (main.children.length > 0) {
-            const baseString = compiler.base.unitToInlinePlainString(main);
-            labels.push({
-                at: .5,
-                shift: defaultLabelShift,
-                margin: parseMargin(unit.options['label-margin'] ?? compiler.extractor.extractLastGlobalOption('label-margin', 'cd', compiler.context.tagToGlobalOptions), 'label'),
-                unit: main,
-                id: createId(baseString),
-                clear: false
-            });
-        }
-        return labels;
-    }
     for (const line of unit.children) {
         if (line.length === 0) {
             cell.children.push(line);
@@ -611,7 +1062,7 @@ export const cd = async (unit, compiler) => {
                     column: row.length - 1
                 };
                 const body = parseArrowBody(first.options.body);
-                const labels = extractLabels(first.children, first.tag);
+                const labels = extractLabels(first.children, first.tag, baseIdToCount, compiler, { labelMarginOption: unit.options['label-margin'] ?? compiler.extractor.extractLastGlobalOption('label-margin', 'cd', compiler.context.tagToGlobalOptions) });
                 const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
                 if (typeof first.options.class === 'string' && first.options.class.length > 0) {
                     try {
@@ -661,7 +1112,7 @@ export const cd = async (unit, compiler) => {
         if (cell.id.length === 0) {
             const baseString = compiler.base.lineToInlinePlainString(line);
             if (baseString.length > 0) {
-                cell.id = createId(baseString);
+                cell.id = createId(baseString, baseIdToCount, compiler);
             }
         }
     }
@@ -725,457 +1176,6 @@ export const cd = async (unit, compiler) => {
         }
         remainingArrows = newRemainingArrows;
     }
-    function draw() {
-        svg.innerHTML = '';
-        const rowHeights = [];
-        const columnWidths = [];
-        const fontSize = Number(getComputedStyle(element).fontSize.slice(0, -2));
-        let heightScale = 1 / fontSize;
-        let widthScale = 1 / fontSize;
-        const fo = element.closest('foreignObject');
-        if (fo !== null) {
-            const { height, width } = fo.getBoundingClientRect();
-            heightScale *= fo.height.animVal.value / height;
-            widthScale *= fo.width.animVal.value / width;
-        }
-        const positionToBox = {};
-        const idToBox = {};
-        for (const { element, position, id } of cellElements) {
-            const box = absoluteElementToBox(element, heightScale, widthScale, cellMargin);
-            positionToBox[position.row + ' ' + position.column] = box;
-            if (id.length > 0) {
-                idToBox[id] = box;
-            }
-            if ((rowHeights[position.row] ?? 0) < box.height) {
-                rowHeights[position.row] = box.height;
-            }
-            if ((columnWidths[position.column] ?? 0) < box.width) {
-                columnWidths[position.column] = box.width;
-            }
-        }
-        function getCoordinate(position) {
-            let x = position.column >= 0 ? (columnWidths[0] ?? 0) / 2 : 0;
-            let y = position.row >= 0 ? (rowHeights[0] ?? 0) / 2 : 0;
-            for (let i = 1; i <= position.column; i++) {
-                const right = columnWidths[i - 1];
-                const left = columnWidths[i];
-                if (right !== undefined) {
-                    x += right / 2;
-                    if (left !== undefined) {
-                        x += gap.column;
-                    }
-                }
-                if (left !== undefined) {
-                    x += left / 2;
-                }
-            }
-            if (position.column % 1 !== 0) {
-                const i = Math.floor(position.column);
-                const right = columnWidths[i];
-                const left = columnWidths[i + 1];
-                if (right !== undefined) {
-                    x += (position.column - i) * right / 2;
-                    if (left !== undefined) {
-                        x += (position.column - i) * gap.column;
-                    }
-                }
-                if (left !== undefined) {
-                    x += (position.column - i) * left / 2;
-                }
-            }
-            for (let i = 1; i <= position.row; i++) {
-                const bottom = rowHeights[i - 1];
-                const top = rowHeights[i];
-                if (bottom !== undefined) {
-                    y += bottom / 2;
-                    if (top !== undefined) {
-                        y += gap.row;
-                    }
-                }
-                if (top !== undefined) {
-                    y += top / 2;
-                }
-            }
-            if (position.row % 1 !== 0) {
-                const i = Math.floor(position.row);
-                const bottom = rowHeights[i];
-                const top = rowHeights[i + 1];
-                if (bottom !== undefined) {
-                    y += (position.row - i) * bottom / 2;
-                    if (top !== undefined) {
-                        y += (position.row - i) * gap.row;
-                    }
-                }
-                if (top !== undefined) {
-                    y += (position.row - i) * top / 2;
-                }
-            }
-            return { x, y };
-        }
-        const idToCoordinate = {};
-        for (const { position, id } of cellElements) {
-            const coordinate = getCoordinate(position);
-            if (id.length > 0) {
-                idToCoordinate[id] = coordinate;
-            }
-        }
-        let xmin = 0;
-        let ymin = 0;
-        let xmax = getCoordinate({ row: 0, column: columnWidths.length }).x;
-        let ymax = getCoordinate({ row: rowHeights.length, column: 0 }).y;
-        function drawPieces(pieces, width, g) {
-            const drawArray = [];
-            for (const piece of pieces) {
-                drawArray.push(piece.toSVG());
-                const { x, y } = piece.bbox();
-                const xmin0 = x.min - width / 2;
-                const xmax0 = x.max + width / 2;
-                const ymin0 = y.min - width / 2;
-                const ymax0 = y.max + width / 2;
-                if (xmin0 < xmin) {
-                    xmin = xmin0;
-                }
-                if (xmax0 > xmax) {
-                    xmax = xmax0;
-                }
-                if (ymin0 < ymin) {
-                    ymin = ymin0;
-                }
-                if (ymax0 > ymax) {
-                    ymax = ymax0;
-                }
-            }
-            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            path.setAttribute('d', drawArray.join(' '));
-            path.style.strokeWidth = width + 'px';
-            path.style.fill = 'none';
-            g.append(path);
-            return drawArray;
-        }
-        function drawBezier(bezier, width, shift, g) {
-            const pieces = bezier.offset(-shift);
-            if (Array.isArray(pieces)) {
-                return drawPieces(pieces, width, g);
-            }
-            return [];
-        }
-        function drawBezierToSquiggle(bezier, width, shift, g) {
-            const pieces = bezier.offset(-shift);
-            if (Array.isArray(pieces)) {
-                return drawPieces(piecesToSquiggle(pieces), width, g);
-            }
-            return [];
-        }
-        const appendedArrows = [];
-        const masks = [];
-        const maskRects = [];
-        function addMask({ data, clear }) {
-            for (let i = 0; i < appendedArrows.length; i++) {
-                const arrow = appendedArrows[i];
-                check: if (typeof clear !== 'number') {
-                    for (const className of clear) {
-                        if (arrow.classList.contains(className)) {
-                            break check;
-                        }
-                    }
-                    continue;
-                }
-                else if (i >= clear) {
-                    break;
-                }
-                let mask = masks[i];
-                if (mask === undefined) {
-                    mask = masks[i] = document.createElementNS('http://www.w3.org/2000/svg', 'mask');
-                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                    rect.style.fill = 'white';
-                    svg.append(mask);
-                    mask.append(rect);
-                    maskRects.push(rect);
-                    const id = Math.random().toString();
-                    mask.id = id;
-                    arrow.style.mask = `url(#${id})`;
-                }
-                if (data.type === 'path') {
-                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                    path.style.strokeWidth = data.width + 'px';
-                    path.style.stroke = 'black';
-                    path.style.fill = 'none';
-                    path.setAttribute('d', data.drawString);
-                    mask.append(path);
-                    continue;
-                }
-                const black = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                black.style.stroke = 'none';
-                black.style.fill = 'black';
-                black.setAttribute('x', data.x);
-                black.setAttribute('y', data.y);
-                black.setAttribute('width', data.width);
-                black.setAttribute('height', data.height);
-                mask.append(black);
-            }
-        }
-        const maskDataArray = [];
-        for (const { from, to, out, in: arrowIn, bend, head, tail, shift, body, g, labels, clear, margin, width } of orderedArrows) {
-            let fromCoordinate;
-            let toCoordinate;
-            let fromBox;
-            let toBox;
-            if (typeof from !== 'string') {
-                fromCoordinate = getCoordinate(from);
-                const box = positionToBox[from.row + ' ' + from.column];
-                if (box === undefined) {
-                    fromBox = { height: 0, width: 0, top: 0, bottom: 0 };
-                }
-                else {
-                    fromBox = box;
-                }
-            }
-            else {
-                const coordinate = idToCoordinate[from];
-                const box = idToBox[from];
-                if (coordinate === undefined || box === undefined) {
-                    continue;
-                }
-                fromCoordinate = coordinate;
-                fromBox = box;
-            }
-            if (typeof to !== 'string') {
-                toCoordinate = getCoordinate(to);
-                const box = positionToBox[to.row + ' ' + to.column];
-                if (box === undefined) {
-                    toBox = { height: 0, width: 0, top: 0, bottom: 0 };
-                }
-                else {
-                    toBox = box;
-                }
-            }
-            else {
-                const coordinate = idToCoordinate[to];
-                const box = idToBox[to];
-                if (coordinate === undefined || box === undefined) {
-                    continue;
-                }
-                toCoordinate = coordinate;
-                toBox = box;
-            }
-            let start;
-            let end;
-            let startD;
-            let endD;
-            let startStrength;
-            let endStrength;
-            if (out === undefined || arrowIn === undefined) {
-                const dx = toCoordinate.x - fromCoordinate.x;
-                const dy = toCoordinate.y - fromCoordinate.y;
-                const length = Math.sqrt(dx ** 2 + dy ** 2);
-                if (length === 0) {
-                    continue;
-                }
-                const angle = dToAngle({ x: dx / length, y: dy / length });
-                let bendAngle = 0;
-                let bendStrength = 1;
-                if (bend !== undefined) {
-                    bendAngle = bend.angle;
-                    bendStrength = bend.strength;
-                }
-                if (out === undefined) {
-                    const startAngle = angle + bendAngle;
-                    start = getEdgePoint(startAngle, fromCoordinate, fromBox);
-                    startD = angleToD(startAngle);
-                    startStrength = bendStrength;
-                }
-                else {
-                    start = getEdgePoint(out.angle, fromCoordinate, fromBox);
-                    startD = angleToD(out.angle);
-                    startStrength = out.strength;
-                }
-                if (arrowIn === undefined) {
-                    const endAngle = angle + 180 - bendAngle;
-                    end = getEdgePoint(endAngle, toCoordinate, toBox);
-                    endD = angleToD(endAngle);
-                    endStrength = bendStrength;
-                }
-                else {
-                    end = getEdgePoint(arrowIn.angle, toCoordinate, toBox);
-                    endD = angleToD(arrowIn.angle);
-                    endStrength = arrowIn.strength;
-                }
-            }
-            else {
-                start = getEdgePoint(out.angle, fromCoordinate, fromBox);
-                end = getEdgePoint(arrowIn.angle, toCoordinate, toBox);
-                startD = angleToD(out.angle);
-                endD = angleToD(arrowIn.angle);
-                startStrength = out.strength;
-                endStrength = arrowIn.strength;
-            }
-            if (head === 'arrow2' || head === 'arrow3' || head === 'hook' || head === '-hook' || head === 'loop' || head === '-loop' || head === 'tail') {
-                end.x = end.x + endD.x * arrowBigMarkMargin;
-                end.y = end.y + endD.y * arrowBigMarkMargin;
-            }
-            if (tail === 'arrow2' || tail === 'arrow3' || tail === 'hook' || tail === '-hook' || tail === 'loop' || tail === '-loop' || tail === 'tail') {
-                start.x = start.x + startD.x * arrowBigMarkMargin;
-                start.y = start.y + startD.y * arrowBigMarkMargin;
-            }
-            const length = Math.sqrt((end.x - start.x) ** 2 + (end.y - start.y) ** 2);
-            if (length === 0) {
-                continue;
-            }
-            const startControl = {
-                x: start.x + startD.x * length / 3 * startStrength,
-                y: start.y + startD.y * length / 3 * startStrength
-            };
-            const endControl = {
-                x: end.x + endD.x * length / 3 * endStrength,
-                y: end.y + endD.y * length / 3 * endStrength
-            };
-            const bezier = new Bezier(start.x, start.y, startControl.x, startControl.y, endControl.x, endControl.y, end.x, end.y);
-            g.innerHTML = '';
-            svg.append(g);
-            const drawArray = [];
-            let mayEmpty = false;
-            if (body === 'three') {
-                drawArray.push(...drawBezier(bezier, width, shift + 2 * twoArrowBodyShift, g));
-                drawArray.push(...drawBezier(bezier, width, shift, g));
-                drawArray.push(...drawBezier(bezier, width, shift - 2 * twoArrowBodyShift, g));
-            }
-            else if (body === 'two') {
-                drawArray.push(...drawBezier(bezier, width, shift + twoArrowBodyShift, g));
-                drawArray.push(...drawBezier(bezier, width, shift - twoArrowBodyShift, g));
-            }
-            else if (body === 'squiggle') {
-                drawArray.push(...drawBezierToSquiggle(bezier, width, shift, g));
-            }
-            else {
-                drawArray.push(...drawBezier(bezier, width, shift, g));
-                mayEmpty = true;
-            }
-            {
-                const base = {
-                    x: end.x - endD.y * shift,
-                    y: end.y + endD.x * shift
-                };
-                const pieces = createArrowMark(head, endD, base);
-                if (pieces.length > 0) {
-                    drawArray.push(...drawPieces(pieces, width, g));
-                    mayEmpty = false;
-                }
-            }
-            {
-                const base = {
-                    x: start.x + startD.y * shift,
-                    y: start.y - startD.x * shift
-                };
-                const pieces = createArrowMark(tail, startD, base);
-                if (pieces.length > 0) {
-                    drawArray.push(...drawPieces(pieces, width, g));
-                    mayEmpty = false;
-                }
-            }
-            if (clear !== false && drawArray.length > 0) {
-                maskDataArray.push({
-                    data: {
-                        type: 'path',
-                        drawString: drawArray.join(' '),
-                        width: 2 * margin + width
-                    },
-                    clear: clear === true ? appendedArrows.length : clear
-                });
-            }
-            if (mayEmpty) {
-                const placeHolder = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                placeHolder.setAttribute('x', '0');
-                placeHolder.setAttribute('y', '0');
-                placeHolder.setAttribute('width', width.toString());
-                placeHolder.setAttribute('height', width.toString());
-                placeHolder.style.stroke = placeHolder.style.fill = 'none';
-                g.append(placeHolder);
-            }
-            appendedArrows.push(g);
-            for (const { at, shift: labelShift, id, clear, margin } of labels) {
-                const root = bezier.get(at);
-                const normal = bezier.normal(at);
-                let allShift = shift + labelShift;
-                if (labelShift !== 0) {
-                    if (body === 'three') {
-                        allShift += 2 * twoArrowBodyShift * Math.sign(labelShift);
-                    }
-                    else if (body === 'two' || body === 'squiggle') {
-                        allShift += twoArrowBodyShift * Math.sign(labelShift);
-                    }
-                }
-                const base = {
-                    x: root.x - normal.x * allShift,
-                    y: root.y - normal.y * allShift
-                };
-                idToCoordinate[id] = base;
-                const labelElement = idToLabelElement[id];
-                if (labelElement === undefined) {
-                    throw new Error();
-                }
-                const box = absoluteElementToBox(labelElement, heightScale, widthScale, margin);
-                idToBox[id] = box;
-                const xmin0 = base.x - box.width / 2;
-                const xmax0 = base.x + box.width / 2;
-                const ymin0 = base.y - box.top;
-                const ymax0 = base.y + box.bottom;
-                if (xmin0 < xmin) {
-                    xmin = xmin0;
-                }
-                if (xmax0 > xmax) {
-                    xmax = xmax0;
-                }
-                if (ymin0 < ymin) {
-                    ymin = ymin0;
-                }
-                if (ymax0 > ymax) {
-                    ymax = ymax0;
-                }
-                if (clear !== false) {
-                    maskDataArray.push({
-                        data: {
-                            type: 'box',
-                            x: xmin0.toString(),
-                            y: ymin0.toString(),
-                            width: box.width.toString(),
-                            height: box.height.toString()
-                        },
-                        clear: clear === true ? appendedArrows.length : clear
-                    });
-                }
-            }
-        }
-        maskDataArray.forEach(addMask);
-        const width = xmax - xmin;
-        const height = ymax - ymin;
-        element.style.width = svg.style.width = width + 'em';
-        element.style.height = svg.style.height = height + 'em';
-        svg.setAttribute('viewBox', `${xmin} ${ymin} ${width} ${height}`);
-        for (const { element, position } of cellElements) {
-            const coordinate = getCoordinate(position);
-            placeAbsoluteElement(element, {
-                x: coordinate.x - xmin,
-                y: coordinate.y - ymin
-            });
-        }
-        for (const id of Object.keys(idToLabelElement)) {
-            const labelElement = idToLabelElement[id];
-            const base = idToCoordinate[id];
-            if (labelElement === undefined || base === undefined) {
-                continue;
-            }
-            placeAbsoluteElement(labelElement, {
-                x: base.x - xmin,
-                y: base.y - ymin
-            });
-        }
-        for (const rect of maskRects) {
-            rect.setAttribute('x', xmin.toString());
-            rect.setAttribute('y', ymin.toString());
-            rect.setAttribute('width', width.toString());
-            rect.setAttribute('height', height.toString());
-        }
-    }
     let observer;
     let timer;
     let listened = false;
@@ -1192,7 +1192,7 @@ export const cd = async (unit, compiler) => {
         }
         await new Promise(r => setTimeout(r, drawDelay));
         for (let i = 0; i < drawNum; i++) {
-            draw();
+            draw(cellElements, orderedArrows, idToLabelElement, svg, element, { gap, cellMargin });
             await new Promise(r => setTimeout(r, 1000));
         }
     };

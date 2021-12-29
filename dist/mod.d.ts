@@ -1,11 +1,11 @@
 import type { UnitCompiler } from '@ddu6/stc';
 import { Bezier } from 'bezier-js';
 declare type ArrowMark = 'arrow' | 'arrow2' | 'arrow3' | 'bar' | 'bar2' | 'bar3' | 'harpoon' | '-harpoon' | 'hook' | '-hook' | 'loop' | '-loop' | 'tail' | 'two' | 'none';
-export interface Coordinate {
+interface Coordinate {
     x: number;
     y: number;
 }
-export interface Box {
+interface Box {
     height: number;
     width: number;
     top: number;
