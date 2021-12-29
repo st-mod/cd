@@ -1,10 +1,10 @@
 {title [Test]}
 {mod demo@0.6.2, global []}
-{mod page@0.2.1, global []}
+{mod page@0.2.2, global []}
 {global, no-count, demo []}
 {break-level 1, page []}
 {demo [
-    {mod beamer@0.7.1/core, global []}
+    {mod beamer@0.7.2/core, global []}
     {css-src main.css, ucs-src ucs.js, global []}
     {class vcenter, frame [{title [Test]}]}
     {class vcenter, frame [{display [{CD [
@@ -112,7 +112,7 @@
 []
 {h1 [Beamer]}
 {demo [
-    {mod beamer@0.7.1/core, global []}
+    {mod beamer@0.7.2/core, global []}
     {css-src main.css, ucs-src ucs.js, global []}
     {class vcenter, frame [{title [Test]}]}
     {class vcenter, frame [{display [{CD [
