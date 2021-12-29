@@ -68,8 +68,7 @@ interface Arrow{
     head:ArrowMark
     tail:ArrowMark
     labels:Label[]
-    class:string
-    style:string
+    g:SVGGElement
     clear:boolean|string[]
 }
 interface BaseIdToCount{
@@ -690,6 +689,29 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
                 }
                 const body=parseArrowBody(first.options.body)
                 const labels=extractLabels(first.children,first.tag)
+                const g=document.createElementNS('http://www.w3.org/2000/svg','g')
+                if(typeof first.options.class==='string'&&first.options.class.length>0){
+                    try{
+                        g.setAttribute('class',first.options.class)
+                    }catch(err){
+                        console.log(err)
+                    }
+                }
+                if(typeof first.options.style==='string'&&first.options.style.length>0){
+                    try{
+                        g.setAttribute('style',first.options.style)
+                    }catch(err){
+                        console.log(err)
+                    }
+                }
+                if(typeof first.options.slide==='string'&&first.options.slide.length>0){
+                    try{
+                        g.dataset.slide=first.options.slide
+                    }catch(err){
+                        console.log(err)
+                    }
+                }
+                svg.append(g)
                 arrows.push({
                     from:parsePosition(first.options.from,'from',base),
                     to:parsePosition(first.options.to,'to',base),
@@ -703,8 +725,7 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
                     head:parseArrowMark(first.options.head,'head',body),
                     tail:parseArrowMark(first.options.tail,'tail',body),
                     labels,
-                    class:typeof first.options.class==='string'?first.options.class:'',
-                    style:typeof first.options.style==='string'?first.options.style:'',
+                    g,
                     clear:parseClear(first.options.clear)
                 })
                 continue
@@ -977,7 +998,7 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
             }
         }
         const maskDataArray:MaskData[]=[]
-        for(const {from,to,out,in:arrowIn,bend,head,tail,shift,body,class:classStr,style,labels,clear,margin,width} of orderedArrows){
+        for(const {from,to,out,in:arrowIn,bend,head,tail,shift,body,g,labels,clear,margin,width} of orderedArrows){
             let fromCoordinate:Coordinate
             let toCoordinate:Coordinate
             let fromBox:Box
@@ -1085,17 +1106,7 @@ export const cd:UnitCompiler=async (unit,compiler)=>{
                 y:end.y+endD.y*length/3*endStrength
             }
             const bezier=new Bezier(start.x,start.y,startControl.x,startControl.y,endControl.x,endControl.y,end.x,end.y)
-            const g=document.createElementNS('http://www.w3.org/2000/svg','g')
-            try{
-                g.setAttribute('class',classStr)
-            }catch(err){
-                console.log(err)
-            }
-            try{
-                g.setAttribute('style',style)
-            }catch(err){
-                console.log(err)
-            }
+            g.innerHTML=''
             svg.append(g)
             const drawArray:string[]=[]
             let mayEmpty=false

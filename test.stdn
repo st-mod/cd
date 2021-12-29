@@ -85,7 +85,7 @@
         &
         \pi_1(U_1)
         {to 1 1, ar []}
-        {to 2 1, bend 20, ar, 'j_1'}
+        {to 2 1, bend 20, slide 2-, ar [{slide 2-, 'j_1'}]}
         \\
         \pi_1(U_1\cap U_2)
         {to 1 -1, ar, 'i_1'}
@@ -93,14 +93,14 @@
         &
         &
         '\pi_1(U_1)\ast_{\pi_1(U_1\cap U_2)}\pi_1(U_2)'
-        {class dashed, ar, '\simeq'}
+        {class dashed, slide 2-, ar [{slide 2-, '\simeq'}]}
         &
-        \pi_1(X)
+        {slide 2-, '\pi_1(X)'}
         \\
         &
         \pi_1(U_2)
         {to 1 -1, ar []}
-        {to 2 -1, bend -20, ar, 'j_2'}
+        {to 2 -1, bend -20, slide 2-, ar [{slide 2-, 'j_2'}]}
     ]}]}]}
 ]}
 []
