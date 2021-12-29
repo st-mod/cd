@@ -78,7 +78,7 @@
 []
 {h1 [Beamer and Page]}
 {demo [
-    {mod beamer@0.7.2/core, global []}
+    {mod beamer@0.7.3/core, global []}
     {css-src main.css, ucs-src ucs.js, global []}
     {class vcenter, frame [{title [Test]}]}
     {class vcenter, frame [{display [{CD [
