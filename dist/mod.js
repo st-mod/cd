@@ -1260,7 +1260,17 @@ export const cd = async (unit, compiler) => {
     };
     observer = new MutationObserver(listener);
     timer = window.setInterval(listener, 1000);
-    observer.observe(document.body, { childList: true, subtree: true });
+    let container;
+    if (compiler.context.root instanceof ShadowRoot) {
+        container = compiler.context.root.querySelector(':host>div');
+    }
+    else {
+        container = compiler.context.root.document.body.querySelector('body>.lr-struct>main>article');
+    }
+    if (container === null) {
+        container = document.body;
+    }
+    observer.observe(container, { childList: true, subtree: true });
     return element;
 };
 export const CD = cd;
