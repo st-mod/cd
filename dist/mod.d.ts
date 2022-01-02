@@ -11,7 +11,7 @@ interface Box {
     top: number;
     bottom: number;
 }
-export interface AbsoluteElement {
+interface AbsoluteElement {
     leftControler: HTMLDivElement;
     topControler: HTMLDivElement;
     container: HTMLDivElement;
