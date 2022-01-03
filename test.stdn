@@ -1,9 +1,6 @@
 {title [Test]}
 {mod demo@0.6.5, global []}
-{mod page@0.3.0, global []}
-{size A5 landscape, page []}
-{global, class breakable, code []}
-// {global, no-count, demo []}
+{global, no-count-inside, demo []}
 {h1 ["cd" vs "CD"]}
 {demo [
     {css-src main.css, ucs-src ucs.js, global []}
