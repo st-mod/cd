@@ -772,6 +772,9 @@ function draw(cellElements, orderedArrows, idToLabelElement, svg, element, { gap
         heightScale *= fo.height.animVal.value / height;
         widthScale *= fo.width.animVal.value / width;
     }
+    if (!isFinite(heightScale) || !isFinite(widthScale)) {
+        return false;
+    }
     const positionToBox = {};
     const idToBox = {};
     for (const { element, position, id } of cellElements) {
@@ -1217,6 +1220,7 @@ function draw(cellElements, orderedArrows, idToLabelElement, svg, element, { gap
         rect.setAttribute('width', width.toString());
         rect.setAttribute('height', height.toString());
     }
+    return true;
 }
 export const cd = async (unit, compiler) => {
     const drawDelay = parseDrawDelay(unit.options['draw-delay'] ?? compiler.extractor.extractLastGlobalOption('draw-delay', 'cd', compiler.context.tagToGlobalOptions));
@@ -1254,7 +1258,9 @@ export const cd = async (unit, compiler) => {
         }
         await new Promise(r => setTimeout(r, drawDelay));
         for (let i = 0; i < drawNum; i++) {
-            draw(cellElements, orderedArrows, idToLabelElement, svg, element, { gap, cellMargin });
+            if (!draw(cellElements, orderedArrows, idToLabelElement, svg, element, { gap, cellMargin })) {
+                i--;
+            }
             await new Promise(r => setTimeout(r, 1000));
         }
     };

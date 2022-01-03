@@ -864,6 +864,9 @@ function draw(cellElements: CellElement[], orderedArrows: Arrow[], idToLabelElem
         heightScale *= fo.height.animVal.value / height
         widthScale *= fo.width.animVal.value / width
     }
+    if (!isFinite(heightScale) || !isFinite(widthScale)) {
+        return false
+    }
     const positionToBox: {
         [key: string]: Box | undefined
     } = {}
@@ -1302,6 +1305,7 @@ function draw(cellElements: CellElement[], orderedArrows: Arrow[], idToLabelElem
         rect.setAttribute('width', width.toString())
         rect.setAttribute('height', height.toString())
     }
+    return true
 }
 export const cd: UnitCompiler = async (unit, compiler) => {
     const drawDelay = parseDrawDelay(unit.options['draw-delay'] ?? compiler.extractor.extractLastGlobalOption('draw-delay', 'cd', compiler.context.tagToGlobalOptions))
@@ -1339,7 +1343,9 @@ export const cd: UnitCompiler = async (unit, compiler) => {
         }
         await new Promise(r => setTimeout(r, drawDelay))
         for (let i = 0; i < drawNum; i++) {
-            draw(cellElements, orderedArrows, idToLabelElement, svg, element, {gap, cellMargin})
+            if (!draw(cellElements, orderedArrows, idToLabelElement, svg, element, {gap, cellMargin})) {
+                i--
+            }
             await new Promise(r => setTimeout(r, 1000))
         }
     }
