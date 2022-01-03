@@ -1267,11 +1267,11 @@ export const cd = async (unit, compiler) => {
     observer = new MutationObserver(listener);
     timer = window.setInterval(listener, 1000);
     let container;
-    if (compiler.context.root instanceof ShadowRoot) {
+    if (compiler.context.root !== undefined) {
         container = compiler.context.root.querySelector(':host>div');
     }
     else {
-        container = compiler.context.root.document.body.querySelector('body>.lr-struct>main>article');
+        container = document.body.querySelector('body>.lr-struct>main>article');
     }
     if (container === null) {
         container = document.body;
