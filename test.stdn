@@ -1,5 +1,5 @@
 {title [Test]}
-{mod demo@0.7.6, global []}
+{mod demo@0.7.7, global []}
 {global, no-count-inside, demo []}
 {h1 ["cd" vs "CD"]}
 {demo [
@@ -78,7 +78,7 @@
 []
 {h1 [Beamer and Page]}
 {demo [
-    {mod beamer@0.9.3/core, global []}
+    {mod beamer@0.9.4/core, global []}
     {css-src main.css, ucs-src ucs.js, global []}
     {class vcenter, frame [{title [Test]}]}
     {class vcenter, frame [{display [{CD [
@@ -105,7 +105,7 @@
 ]}
 []
 {demo [
-    {mod page@0.5.3, global []}
+    {mod page@0.5.4, global []}
     {css-src main.css, ucs-src ucs.js, global []}
     {size A5, page []}
     {CD [
