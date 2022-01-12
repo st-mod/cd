@@ -78,8 +78,9 @@
 []
 {h1 [Beamer and Page]}
 {demo [
-    {mod beamer@0.9.8/core, global []}
+    {mod beamer@0.9.10/core, global []}
     {css-src main.css, ucs-src ucs.js, global []}
+    {global, size 1100px 500px, frame []}
     {class vcenter, frame [{title [Test]}]}
     {class vcenter, frame [{display [{CD [
         &
@@ -105,7 +106,7 @@
 ]}
 []
 {demo [
-    {mod page@0.5.7, global []}
+    {mod page@0.5.8, global []}
     {css-src main.css, ucs-src ucs.js, global []}
     {size A5, page []}
     {CD [
