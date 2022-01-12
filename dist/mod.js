@@ -9,7 +9,7 @@ const arrowBigMarkMargin = 4 * defaultArrowWidth;
 const twoArrowBodyShift = 2.5 * defaultArrowWidth;
 const defaultArrowMargin = 6 * defaultArrowWidth;
 const defaultArrowShift = defaultArrowMargin;
-const defaultLabelMargin = defaultArrowMargin;
+const defaultLabelMargin = defaultCellMargin;
 const defaultLabelShift = .8;
 function parseDrawDelay(option) {
     if (typeof option === 'number' && isFinite(option) && option >= 0) {

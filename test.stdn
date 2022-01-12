@@ -554,7 +554,7 @@
     ]}
     {CD [
         A
-        {ar [{shift 0, clear, '\phi'}]}
+        {ar [{shift 0, margin 0.24, clear, '\phi'}]}
         &
         B
     ]}
