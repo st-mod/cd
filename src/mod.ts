@@ -1383,7 +1383,7 @@ export const cd: UnitCompiler = async (unit, compiler) => {
         }
         element.addEventListener('adjust', async e => {
             if (e.eventPhase === e.BUBBLING_PHASE) {
-                e.stopImmediatePropagation()
+                e.stopPropagation()
                 await drawAndDispatch()
             }
         })
