@@ -628,8 +628,11 @@
 {demo [
     {css-src main.css, ucs-src ucs.js, global []}
     {CD [
-        {CD [
+        {draw-delay 1, CD [
             A
+            {to 0 1, ar []}
+            \\
+            B
             {to 0 1, ar []}
             \\
             C
@@ -638,16 +641,16 @@
         {to 0 1, ar []}
         &
         {CD [
-            B
+            E
             {to 0 1, ar []}
             \\
-            D
+            F
         ]}
         {to 0 1, ar []}
         \\
-        E
+        D
         &
-        F
+        G
     ]}
 ]}
 []
