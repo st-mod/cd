@@ -2,7 +2,7 @@
     display: inline-block;
 }
 
-.unit.cd>svg>g {
+.unit.cd>svg>g>path {
     stroke: currentColor;
     stroke-linecap: round;
 }

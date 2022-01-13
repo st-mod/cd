@@ -759,6 +759,80 @@ async function orderArrows(arrows, idSet, svg, compiler) {
         idToLabelElement
     };
 }
+function getCoordinateX(column, columnWidths, gap) {
+    let x = column >= 0 ? (columnWidths[0] ?? 0) / 2 : 0;
+    for (let i = 1; i <= column; i++) {
+        const right = columnWidths[i - 1];
+        const left = columnWidths[i];
+        if (right !== undefined) {
+            x += right / 2;
+            if (left !== undefined) {
+                x += gap;
+            }
+        }
+        if (left !== undefined) {
+            x += left / 2;
+        }
+    }
+    if (column % 1 !== 0) {
+        const i = Math.floor(column);
+        const right = columnWidths[i];
+        const left = columnWidths[i + 1];
+        if (right !== undefined) {
+            x += (column - i) * right / 2;
+            if (left !== undefined) {
+                x += (column - i) * gap;
+            }
+        }
+        if (left !== undefined) {
+            x += (column - i) * left / 2;
+        }
+    }
+    return x;
+}
+function getCoordinateY(row, rowHeights, gap) {
+    let y = 0;
+    if (row >= 0) {
+        const firstRowHeight = rowHeights[0];
+        if (firstRowHeight !== undefined) {
+            y = firstRowHeight.top;
+        }
+    }
+    for (let i = 1; i <= row; i++) {
+        const bottom = rowHeights[i - 1];
+        const top = rowHeights[i];
+        if (bottom !== undefined) {
+            y += bottom.bottom;
+            if (top !== undefined) {
+                y += gap;
+            }
+        }
+        if (top !== undefined) {
+            y += top.top;
+        }
+    }
+    if (row % 1 !== 0) {
+        const i = Math.floor(row);
+        const bottom = rowHeights[i];
+        const top = rowHeights[i + 1];
+        if (bottom !== undefined) {
+            y += (row - i) * bottom.bottom;
+            if (top !== undefined) {
+                y += (row - i) * gap;
+            }
+        }
+        if (top !== undefined) {
+            y += (row - i) * top.top;
+        }
+    }
+    return y;
+}
+function getCoordinate({ row, column }, rowHeights, columnWidths, gap) {
+    return {
+        x: getCoordinateX(column, columnWidths, gap.column),
+        y: getCoordinateY(row, rowHeights, gap.row)
+    };
+}
 function draw(cellElements, orderedArrows, idToLabelElement, svg, element, { gap, cellMargin }) {
     svg.innerHTML = '';
     const rowHeights = [];
@@ -783,83 +857,37 @@ function draw(cellElements, orderedArrows, idToLabelElement, svg, element, { gap
         if (id.length > 0) {
             idToBox[id] = box;
         }
-        if ((rowHeights[position.row] ?? 0) < box.height) {
-            rowHeights[position.row] = box.height;
+        const rowHeight = rowHeights[position.row];
+        if (rowHeight === undefined) {
+            rowHeights[position.row] = {
+                top: box.top,
+                bottom: box.bottom
+            };
+        }
+        else {
+            if (rowHeight.top < box.top) {
+                rowHeight.top = box.top;
+            }
+            if (rowHeight.bottom < box.bottom) {
+                rowHeight.bottom = box.bottom;
+            }
         }
         if ((columnWidths[position.column] ?? 0) < box.width) {
             columnWidths[position.column] = box.width;
         }
     }
-    function getCoordinate(position) {
-        let x = position.column >= 0 ? (columnWidths[0] ?? 0) / 2 : 0;
-        let y = position.row >= 0 ? (rowHeights[0] ?? 0) / 2 : 0;
-        for (let i = 1; i <= position.column; i++) {
-            const right = columnWidths[i - 1];
-            const left = columnWidths[i];
-            if (right !== undefined) {
-                x += right / 2;
-                if (left !== undefined) {
-                    x += gap.column;
-                }
-            }
-            if (left !== undefined) {
-                x += left / 2;
-            }
-        }
-        if (position.column % 1 !== 0) {
-            const i = Math.floor(position.column);
-            const right = columnWidths[i];
-            const left = columnWidths[i + 1];
-            if (right !== undefined) {
-                x += (position.column - i) * right / 2;
-                if (left !== undefined) {
-                    x += (position.column - i) * gap.column;
-                }
-            }
-            if (left !== undefined) {
-                x += (position.column - i) * left / 2;
-            }
-        }
-        for (let i = 1; i <= position.row; i++) {
-            const bottom = rowHeights[i - 1];
-            const top = rowHeights[i];
-            if (bottom !== undefined) {
-                y += bottom / 2;
-                if (top !== undefined) {
-                    y += gap.row;
-                }
-            }
-            if (top !== undefined) {
-                y += top / 2;
-            }
-        }
-        if (position.row % 1 !== 0) {
-            const i = Math.floor(position.row);
-            const bottom = rowHeights[i];
-            const top = rowHeights[i + 1];
-            if (bottom !== undefined) {
-                y += (position.row - i) * bottom / 2;
-                if (top !== undefined) {
-                    y += (position.row - i) * gap.row;
-                }
-            }
-            if (top !== undefined) {
-                y += (position.row - i) * top / 2;
-            }
-        }
-        return { x, y };
-    }
     const idToCoordinate = {};
     for (const { position, id } of cellElements) {
-        const coordinate = getCoordinate(position);
+        const coordinate = getCoordinate(position, rowHeights, columnWidths, gap);
         if (id.length > 0) {
             idToCoordinate[id] = coordinate;
         }
     }
+    const textCenter = getCoordinateY(rowHeights.length - 1, rowHeights, gap.row);
     let xmin = 0;
     let ymin = 0;
-    let xmax = getCoordinate({ row: 0, column: columnWidths.length }).x;
-    let ymax = getCoordinate({ row: rowHeights.length, column: 0 }).y;
+    let xmax = getCoordinateX(columnWidths.length, columnWidths, gap.column);
+    let ymax = getCoordinateY(rowHeights.length, rowHeights, gap.row);
     function drawPieces(pieces, width, g, classStr) {
         const drawArray = [];
         for (const piece of pieces) {
@@ -966,7 +994,7 @@ function draw(cellElements, orderedArrows, idToLabelElement, svg, element, { gap
         let fromBox;
         let toBox;
         if (typeof from !== 'string') {
-            fromCoordinate = getCoordinate(from);
+            fromCoordinate = getCoordinate(from, rowHeights, columnWidths, gap);
             const box = positionToBox[from.row + ' ' + from.column];
             if (box === undefined) {
                 fromBox = { height: 0, width: 0, top: 0, bottom: 0 };
@@ -985,7 +1013,7 @@ function draw(cellElements, orderedArrows, idToLabelElement, svg, element, { gap
             fromBox = box;
         }
         if (typeof to !== 'string') {
-            toCoordinate = getCoordinate(to);
+            toCoordinate = getCoordinate(to, rowHeights, columnWidths, gap);
             const box = positionToBox[to.row + ' ' + to.column];
             if (box === undefined) {
                 toBox = { height: 0, width: 0, top: 0, bottom: 0 };
@@ -1195,9 +1223,10 @@ function draw(cellElements, orderedArrows, idToLabelElement, svg, element, { gap
     const height = ymax - ymin;
     element.style.width = svg.style.width = width + 'em';
     element.style.height = svg.style.height = height + 'em';
+    element.style.verticalAlign = `calc(${textCenter - ymax}em + 0.5ex)`;
     svg.setAttribute('viewBox', `${xmin} ${ymin} ${width} ${height}`);
     for (const { element, position } of cellElements) {
-        const coordinate = getCoordinate(position);
+        const coordinate = getCoordinate(position, rowHeights, columnWidths, gap);
         placeAbsoluteElement(element, {
             x: coordinate.x - xmin,
             y: coordinate.y - ymin
@@ -1242,6 +1271,13 @@ export const cd = async (unit, compiler) => {
         labelMarginOption: unit.options['label-margin'] ?? compiler.extractor.extractLastGlobalOption('label-margin', 'cd', compiler.context.tagToGlobalOptions)
     });
     const { orderedArrows, idToLabelElement } = await orderArrows(arrows, idSet, svg, compiler);
+    async function drawAndDispatch() {
+        await new Promise(r => setTimeout(r, drawDelay));
+        while (!draw(cellElements, orderedArrows, idToLabelElement, svg, element, { gap, cellMargin })) {
+            await new Promise(r => setTimeout(r, 1000));
+        }
+        element.dispatchEvent(new Event('adjust', { bubbles: true, composed: true }));
+    }
     let observer;
     let timer;
     let listened = false;
@@ -1256,11 +1292,14 @@ export const cd = async (unit, compiler) => {
         if (timer !== undefined) {
             clearInterval(timer);
         }
-        await new Promise(r => setTimeout(r, drawDelay));
-        for (let i = 0; i < drawNum; i++) {
-            if (!draw(cellElements, orderedArrows, idToLabelElement, svg, element, { gap, cellMargin })) {
-                i--;
+        element.addEventListener('adjust', async (e) => {
+            if (e.eventPhase === e.BUBBLING_PHASE) {
+                e.stopImmediatePropagation();
+                await drawAndDispatch();
             }
+        });
+        for (let i = 0; i < drawNum; i++) {
+            await drawAndDispatch();
             await new Promise(r => setTimeout(r, 1000));
         }
     };
