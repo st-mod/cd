@@ -1360,13 +1360,16 @@ export const cd: UnitCompiler = async (unit, compiler) => {
         labelMarginOption: unit.options['label-margin'] ?? compiler.extractor.extractLastGlobalOption('label-margin', 'cd', compiler.context.tagToGlobalOptions)
     })
     const {orderedArrows, idToLabelElement} = await orderArrows(arrows, idSet, svg, compiler)
-    async function drawAndDispatch() {
-        await new Promise(r => setTimeout(r, drawDelay))
-        while (!draw(cellElements, orderedArrows, idToLabelElement, svg, element, {gap, cellMargin})) {
-            await new Promise(r => setTimeout(r, 1000))
+    const drawAndDispatchGenerator = (async function* () {
+        while (true) {
+            await new Promise(r => setTimeout(r, drawDelay))
+            while (!draw(cellElements, orderedArrows, idToLabelElement, svg, element, {gap, cellMargin})) {
+                await new Promise(r => setTimeout(r, 1000))
+            }
+            element.dispatchEvent(new Event('adjust', {bubbles: true, composed: true}))
+            yield
         }
-        element.dispatchEvent(new Event('adjust', {bubbles: true, composed: true}))
-    }
+    })()
     let observer: MutationObserver | undefined
     let timer: number | undefined
     let listened = false
@@ -1384,11 +1387,11 @@ export const cd: UnitCompiler = async (unit, compiler) => {
         element.addEventListener('adjust', async e => {
             if (e.eventPhase === e.BUBBLING_PHASE) {
                 e.stopPropagation()
-                await drawAndDispatch()
+                await drawAndDispatchGenerator.next()
             }
         })
         for (let i = 0; i < drawNum; i++) {
-            await drawAndDispatch()
+            await drawAndDispatchGenerator.next()
             await new Promise(r => setTimeout(r, 1000))
         }
     }
