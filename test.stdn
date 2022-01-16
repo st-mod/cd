@@ -1,5 +1,5 @@
 {title [Test]}
-{mod demo@0.9.2, global []}
+{mod demo@0.9.3, global []}
 {global, no-count-inside, demo []}
 {h1 ["cd" vs "CD"]}
 {demo [
@@ -7,15 +7,15 @@
     {cd [
         A
         {ar, '\phi'}
-        {to 0 1, style color:var(--color-warn), ar []}
+        {to 0 1, style color: var(--color-warn), ar []}
         &
         B
-        {to 0 1, ar [{style color:var(--color-warn), '\psi'}]}
+        {to 0 1, ar [{style color: var(--color-warn), '\psi'}]}
         \\
         C
-        {style color:var(--color-warn), ar [{style color:var(--color-modifier), '\eta'}]}
+        {style color: var(--color-warn), ar [{style color: var(--color-modifier), '\eta'}]}
         &
-        {style color:var(--color-modifier); display:inline-block; transform:rotate(15deg), div [D]}
+        {style color: var(--color-modifier); display: inline-block; transform: rotate(15deg), div [D]}
     ]}
 ]}
 []
@@ -24,15 +24,15 @@
     {CD [
         A
         {ar, '\phi'}
-        {to 0 1, style color:var(--color-warn), ar []}
+        {to 0 1, style color: var(--color-warn), ar []}
         &
         B
-        {to 0 1, ar [{style color:var(--color-warn), '\psi'}]}
+        {to 0 1, ar [{style color: var(--color-warn), '\psi'}]}
         \\
         C
-        {style color:var(--color-warn), ar [{style color:var(--color-modifier), '\eta'}]}
+        {style color: var(--color-warn), ar [{style color: var(--color-modifier), '\eta'}]}
         &
-        {style color:var(--color-modifier); display:inline-block; transform:rotate(15deg), 'D'}
+        {style color: var(--color-modifier); display: inline-block; transform: rotate(15deg), 'D'}
     ]}
 ]}
 []
@@ -78,7 +78,7 @@
 []
 {h1 [Beamer and Page]}
 {demo [
-    {mod beamer@0.10.3/core, global []}
+    {mod beamer@0.11.0/core, global []}
     {css-src main.css, ucs-src ucs.js, global []}
     {global, size 1100px 500px, frame []}
     {class vcenter, frame [{title [Test]}]}
@@ -106,7 +106,7 @@
 ]}
 []
 {demo [
-    {mod page@0.6.3, global []}
+    {mod page@0.7.0, global []}
     {css-src main.css, ucs-src ucs.js, global []}
     {size A5, page []}
     {CD [
@@ -122,7 +122,7 @@
         {ar, 'j_*'}
         &
         'H_n(X,A)'
-        {to -2 1, out 0, in 180, style color:var(--color-variable), ar [{at 0.3, '\partial_*'}]}
+        {to -2 1, out 0, in 180, style color: var(--color-variable), ar [{at 0.3, '\partial_*'}]}
         \\
         'H_{n-1}(A)'
         {ar, 'i_*'}
@@ -328,13 +328,13 @@
     {css-src main.css, ucs-src ucs.js, global []}
     {CD [
         A
-        {shift, style color:var(--color-warn), ar []}
+        {shift, style color: var(--color-warn), ar []}
         {ar []}
-        {to 1 1, shift right, style color:var(--color-modifier), ar []}
+        {to 1 1, shift right, style color: var(--color-modifier), ar []}
         {to 1 1, ar []}
         &
         B
-        {to 0 1, shift, style color:var(--color-keyword), ar []}
+        {to 0 1, shift, style color: var(--color-keyword), ar []}
         {to 0 1, ar []}
         \\
         &
@@ -416,8 +416,8 @@
     {css-src main.css, ucs-src ucs.js, global []}
     {CD [
         A
-        {to z, style color:var(--color-warn), ar []}
-        {to 1 1, style color:var(--color-modifier), ar []}
+        {to z, style color: var(--color-warn), ar []}
+        {to 1 1, style color: var(--color-modifier), ar []}
         &
         B
         \\
@@ -425,7 +425,7 @@
         C
         &
         D
-        {from -1 -1, to 0 -1, style color:var(--color-keyword), ar []}
+        {from -1 -1, to 0 -1, style color: var(--color-keyword), ar []}
     ]}
     {gap 1.8 -, CD [
         A
@@ -573,12 +573,12 @@
     {gap - 0, cell-margin 0, cd [
         []
         \\
-        {style border:1px solid var(--color-border); width:1.5em; text-align:center, div [{'A'}]}
+        {style border: 1px solid var(--color-border); width: 1.5em; text-align: center, div [{'A'}]}
         {ar []}
-        {to 2 -0.5, style color:var(--color-modifier), ar []}
-        {to 2 -1, style color:var(--color-warn), ar []}
+        {to 2 -0.5, style color: var(--color-modifier), ar []}
+        {to 2 -1, style color: var(--color-warn), ar []}
         &
-        {style border:1px solid var(--color-border); width:1.5em; text-align:center, div [{'B'}]}
+        {style border: 1px solid var(--color-border); width: 1.5em; text-align: center, div [{'B'}]}
     ]}
     {CD [
         A
@@ -628,7 +628,7 @@
 {demo [
     {css-src main.css, ucs-src ucs.js, global []}
     {CD [
-        {draw-delay 1, CD [
+        {CD [
             A
             {to 0 1, ar []}
             \\

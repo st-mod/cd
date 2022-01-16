@@ -11,18 +11,6 @@ const defaultArrowMargin = 6 * defaultArrowWidth;
 const defaultArrowShift = defaultArrowMargin;
 const defaultLabelMargin = defaultCellMargin;
 const defaultLabelShift = .8;
-function parseDrawDelay(option) {
-    if (typeof option === 'number' && isFinite(option) && option >= 0) {
-        return option * 1000;
-    }
-    return 0;
-}
-function parseDrawNum(option) {
-    if (typeof option === 'number' && isFinite(option) && option % 1 === 0 && option >= 1) {
-        return option;
-    }
-    return 1;
-}
 function parseGap(option) {
     if (typeof option === 'number' && isFinite(option) && option >= 0) {
         return {
@@ -496,28 +484,27 @@ export function piecesToSquiggle(pieces) {
     }
     return out;
 }
-export function createAbsoluteElement(content, after) {
-    const leftControler = document.createElement('div');
-    const centerDiv = document.createElement('div');
-    const topControler = document.createElement('div');
+export function createAbsoluteElement(content) {
+    const element = document.createElement('div');
+    const centeredBlock = document.createElement('div');
+    const baselineBlock = document.createElement('div');
     const container = document.createElement('div');
-    leftControler.style.position = 'absolute';
-    leftControler.style.top = '0';
-    leftControler.style.width = '0';
-    leftControler.style.display = 'flex';
-    leftControler.style.justifyContent = 'center';
-    topControler.style.display = 'inline-block';
+    element.style.position = 'absolute';
+    element.style.top = '0';
+    element.style.width = '0';
+    element.style.display = 'flex';
+    element.style.justifyContent = 'center';
+    baselineBlock.style.display = 'inline-block';
     container.style.display = 'inline-block';
     container.style.verticalAlign = '-0.5ex';
     container.style.width = 'max-content';
-    after.after(leftControler);
-    leftControler.append(centerDiv);
-    centerDiv.append(topControler);
-    centerDiv.append(container);
+    element.append(centeredBlock);
+    centeredBlock.append(baselineBlock);
+    centeredBlock.append(container);
     container.append(content);
     return {
-        leftControler,
-        topControler,
+        element,
+        baselineBlock,
         container
     };
 }
@@ -525,8 +512,8 @@ export function absoluteElementToBox(element, heightScale, widthScale, margin) {
     const { height, width } = element.container.getBoundingClientRect();
     const scaledHeight = height * heightScale;
     const scaledWidth = width * widthScale;
-    element.topControler.style.height = scaledHeight + 'em';
-    const { top: baseTop } = element.topControler.getBoundingClientRect();
+    element.baselineBlock.style.height = scaledHeight + 'em';
+    const { top: baseTop } = element.baselineBlock.getBoundingClientRect();
     const { top } = element.container.getBoundingClientRect();
     const scaledBottom = Math.min(scaledHeight, (top - baseTop) * heightScale);
     return {
@@ -537,8 +524,8 @@ export function absoluteElementToBox(element, heightScale, widthScale, margin) {
     };
 }
 export function placeAbsoluteElement(element, coordinate) {
-    element.leftControler.style.left = coordinate.x + 'em';
-    element.topControler.style.height = coordinate.y + 'em';
+    element.element.style.left = coordinate.x + 'em';
+    element.baselineBlock.style.height = coordinate.y + 'em';
 }
 function createId(baseString, baseIdToCount, compiler) {
     const baseId = compiler.base.stringToId(baseString);
@@ -696,12 +683,14 @@ async function extractCellElements(children, svg, compiler, options) {
             if (children.length === 0) {
                 continue;
             }
+            const element = createAbsoluteElement(options.katex ? await compiler.compileUnit({
+                tag: 'katex',
+                options: {},
+                children
+            }) : await compiler.compileSTDN(children));
+            svg.after(element.element);
             cellElements.push({
-                element: createAbsoluteElement(options.katex ? await compiler.compileUnit({
-                    tag: 'katex',
-                    options: {},
-                    children
-                }) : await compiler.compileSTDN(children), svg),
+                element,
                 position: {
                     row: i,
                     column: j
@@ -741,11 +730,12 @@ async function orderArrows(arrows, idSet, svg, compiler) {
             }
             orderedArrows.push(arrow);
             for (const { unit, id } of arrow.labels) {
-                const labelElement = createAbsoluteElement(await compiler.compileUnit(unit), svg);
+                const element = createAbsoluteElement(await compiler.compileUnit(unit));
+                svg.after(element.element);
                 if (unit.options['normal-font-size'] !== true) {
-                    labelElement.container.style.fontSize = 'var(--length-font-log)';
+                    element.container.style.fontSize = 'var(--length-font-code)';
                 }
-                idToLabelElement[id] = labelElement;
+                idToLabelElement[id] = element;
                 idSet[id] = true;
             }
         }
@@ -1252,8 +1242,6 @@ function draw(cellElements, orderedArrows, idToLabelElement, svg, element, { gap
     return true;
 }
 export const cd = async (unit, compiler) => {
-    const drawDelay = parseDrawDelay(unit.options['draw-delay'] ?? compiler.extractor.extractLastGlobalOption('draw-delay', 'cd', compiler.context.tagToGlobalOptions));
-    const drawNum = parseDrawNum(unit.options['draw-num'] ?? compiler.extractor.extractLastGlobalOption('draw-num', 'cd', compiler.context.tagToGlobalOptions));
     const gap = parseGap(unit.options.gap ?? compiler.extractor.extractLastGlobalOption('gap', 'cd', compiler.context.tagToGlobalOptions));
     const cellMargin = parseMargin(unit.options['cell-margin'] ?? compiler.extractor.extractLastGlobalOption('cell-margin', 'cd', compiler.context.tagToGlobalOptions), 'cell');
     const element = document.createElement('div');
@@ -1273,7 +1261,6 @@ export const cd = async (unit, compiler) => {
     const { orderedArrows, idToLabelElement } = await orderArrows(arrows, idSet, svg, compiler);
     const drawAndDispatchGenerator = (async function* () {
         while (true) {
-            await new Promise(r => setTimeout(r, drawDelay));
             while (!draw(cellElements, orderedArrows, idToLabelElement, svg, element, { gap, cellMargin })) {
                 await new Promise(r => setTimeout(r, 1000));
             }
@@ -1281,39 +1268,30 @@ export const cd = async (unit, compiler) => {
             yield;
         }
     })();
-    let observer;
-    let timer;
+    const observer = new MutationObserver(listener);
+    const timer = window.setInterval(listener, 1000);
     let listened = false;
-    const listener = async () => {
+    async function listener() {
         if (!element.isConnected || listened) {
             return;
         }
         listened = true;
-        if (observer !== undefined) {
-            observer.disconnect();
-        }
-        if (timer !== undefined) {
-            clearInterval(timer);
-        }
+        observer.disconnect();
+        clearInterval(timer);
         element.addEventListener('adjust', async (e) => {
             if (e.eventPhase === e.BUBBLING_PHASE) {
                 e.stopPropagation();
                 await drawAndDispatchGenerator.next();
             }
         });
-        for (let i = 0; i < drawNum; i++) {
-            await drawAndDispatchGenerator.next();
-            await new Promise(r => setTimeout(r, 1000));
-        }
-    };
-    observer = new MutationObserver(listener);
-    timer = window.setInterval(listener, 1000);
+        await drawAndDispatchGenerator.next();
+    }
     let container;
     if (compiler.context.root !== undefined) {
         container = compiler.context.root.querySelector(':host>div');
     }
     else {
-        container = document.body.querySelector('body>.lr-struct>main>article');
+        container = document.body.querySelector(':scope>.lr-struct>main>article');
     }
     if (container === null) {
         container = document.body;

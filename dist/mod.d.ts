@@ -12,8 +12,8 @@ interface Box {
     bottom: number;
 }
 interface AbsoluteElement {
-    leftControler: HTMLDivElement;
-    topControler: HTMLDivElement;
+    element: HTMLDivElement;
+    baselineBlock: HTMLDivElement;
     container: HTMLDivElement;
 }
 export declare function angleToD(angle: number): Coordinate;
@@ -21,7 +21,7 @@ export declare function dToAngle(d: Coordinate): number;
 export declare function getEdgePoint(angle: number, base: Coordinate, box: Box): Coordinate;
 export declare function createArrowMark(mark: ArrowMark, d: Coordinate, base: Coordinate): Bezier[];
 export declare function piecesToSquiggle(pieces: Bezier[]): Bezier[];
-export declare function createAbsoluteElement(content: Node, after: Element): AbsoluteElement;
+export declare function createAbsoluteElement(content: Node): AbsoluteElement;
 export declare function absoluteElementToBox(element: AbsoluteElement, heightScale: number, widthScale: number, margin: number): Box;
 export declare function placeAbsoluteElement(element: AbsoluteElement, coordinate: Coordinate): void;
 export declare const cd: UnitCompiler;
