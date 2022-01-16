@@ -106,7 +106,7 @@
 ]}
 []
 {demo [
-    {mod page@0.7.0, global []}
+    {mod page@0.8.0, global []}
     {css-src main.css, ucs-src ucs.js, global []}
     {size A5, page []}
     {CD [
