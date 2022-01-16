@@ -627,7 +627,7 @@
 {h1 [Nest]}
 {demo [
     {css-src main.css, ucs-src ucs.js, global []}
-    {CD [
+    {[[\left(\vcenter{CD [
         {CD [
             A
             {to 0 1, ar []}
@@ -651,6 +651,6 @@
         D
         &
         G
-    ]}
+    ]}\right)]]}
 ]}
 []
