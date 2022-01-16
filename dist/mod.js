@@ -1,4 +1,5 @@
 import { Bezier } from 'bezier-js';
+import { observeAdjustments } from 'st-std/dist/observe';
 const defaultRowGap = 1.8;
 const defaultColumnGap = 2.4;
 const defaultCellMargin = .5;
@@ -1259,44 +1260,9 @@ export const cd = async (unit, compiler) => {
         labelMarginOption: unit.options['label-margin'] ?? compiler.extractor.extractLastGlobalOption('label-margin', 'cd', compiler.context.tagToGlobalOptions)
     });
     const { orderedArrows, idToLabelElement } = await orderArrows(arrows, idSet, svg, compiler);
-    const drawAndDispatchGenerator = (async function* () {
-        while (true) {
-            while (!draw(cellElements, orderedArrows, idToLabelElement, svg, element, { gap, cellMargin })) {
-                await new Promise(r => setTimeout(r, 1000));
-            }
-            element.dispatchEvent(new Event('adjust', { bubbles: true, composed: true }));
-            yield;
-        }
-    })();
-    const observer = new MutationObserver(listener);
-    const timer = window.setInterval(listener, 1000);
-    let listened = false;
-    async function listener() {
-        if (!element.isConnected || listened) {
-            return;
-        }
-        listened = true;
-        observer.disconnect();
-        clearInterval(timer);
-        element.addEventListener('adjust', async (e) => {
-            if (e.eventPhase === e.BUBBLING_PHASE) {
-                e.stopPropagation();
-                await drawAndDispatchGenerator.next();
-            }
-        });
-        await drawAndDispatchGenerator.next();
-    }
-    let container;
-    if (compiler.context.root !== undefined) {
-        container = compiler.context.root.querySelector(':host>div');
-    }
-    else {
-        container = document.body.querySelector(':scope>.lr-struct>main>article');
-    }
-    if (container === null) {
-        container = document.body;
-    }
-    observer.observe(container, { childList: true, subtree: true });
+    observeAdjustments(async () => {
+        return draw(cellElements, orderedArrows, idToLabelElement, svg, element, { gap, cellMargin });
+    }, element, compiler.context.root);
     return element;
 };
 export const CD = cd;
