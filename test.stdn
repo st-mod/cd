@@ -76,7 +76,7 @@
     ]}
 ]}
 []
-{h1 [Beamer and Page]}
+{h1 [Beamer]}
 {demo [
     {mod beamer@0.11.1/core, global []}
     {css-src main.css, ucs-src ucs.js, global []}
@@ -103,38 +103,6 @@
         {to 1 -1, ar []}
         {to 2 -1, bend -20, slide 2-, ar [{slide 2-, 'j_2'}]}
     ]}]}]}
-]}
-[]
-{demo [
-    {mod page@0.8.1, global []}
-    {css-src main.css, ucs-src ucs.js, global []}
-    {size A5, page []}
-    {CD [
-        &
-        &
-        \cdots
-        \\
-        H_n(A)
-        {from 2 -1, out 0, in 180, class dashed, ar []}
-        {ar, 'i_*'}
-        &
-        H_n(X)
-        {ar, 'j_*'}
-        &
-        'H_n(X,A)'
-        {to -2 1, out 0, in 180, style color: var(--color-variable), ar [{at 0.3, '\partial_*'}]}
-        \\
-        'H_{n-1}(A)'
-        {ar, 'i_*'}
-        &
-        'H_{n-1}(X)'
-        {ar, 'j_*'}
-        &
-        'H_{n-1}(X,A)'
-        {to -2 1, out 0, in 180, class dashed, ar []}
-        \\
-        \cdots
-    ]}
 ]}
 []
 {h1 [Arrows]}
@@ -260,18 +228,6 @@
     {CD [
         A
         {bend, head two, tail tail, ar []}
-        &
-        B
-    ]}
-    {CD [
-        A
-        {bend, head tail, tail two, ar []}
-        &
-        B
-    ]}
-    {CD [
-        A
-        {bend, body squiggle, head two, tail tail, ar []}
         &
         B
     ]}
@@ -414,19 +370,6 @@
 {h1 [Id]}
 {demo [
     {css-src main.css, ucs-src ucs.js, global []}
-    {CD [
-        A
-        {to z, style color: var(--color-warn), ar []}
-        {to 1 1, style color: var(--color-modifier), ar []}
-        &
-        B
-        \\
-        {class hide, 'z'}
-        C
-        &
-        D
-        {from -1 -1, to 0 -1, style color: var(--color-keyword), ar []}
-    ]}
     {gap 1.8 -, CD [
         A
         {to 1 1, ar []}
@@ -447,6 +390,22 @@
         &
         B
         {from u, to d, body two, ar []}
+    ]}
+]}
+[]
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {CD [
+        A
+        {style color: var(--color-keyword), ar []}
+        {to c, style color: var(--color-warn), ar []}
+        {to 1 1, style color: var(--color-modifier), ar []}
+        &
+        B
+        \\
+        C
+        &
+        D
     ]}
 ]}
 []
@@ -602,6 +561,10 @@
         B
         {to 0, out 30 5, in -30 5, ar []}
     ]}
+]}
+[]
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
     {CD [
         A
         {ar []}
@@ -621,6 +584,36 @@
         {ar []}
         &
         F
+    ]}
+]}
+[]
+{demo [
+    {css-src main.css, ucs-src ucs.js, global []}
+    {CD [
+        &
+        &
+        \cdots
+        \\
+        H_n(A)
+        {from 2 -1, out 0, in 180, class dashed, ar []}
+        {ar, 'i_*'}
+        &
+        H_n(X)
+        {ar, 'j_*'}
+        &
+        'H_n(X,A)'
+        {to -2 1, out 0, in 180, style color: var(--color-variable), ar [{at 0.3, '\partial_*'}]}
+        \\
+        'H_{n-1}(A)'
+        {ar, 'i_*'}
+        &
+        'H_{n-1}(X)'
+        {ar, 'j_*'}
+        &
+        'H_{n-1}(X,A)'
+        {to -2 1, out 0, in 180, class dashed, ar []}
+        \\
+        \cdots
     ]}
 ]}
 []
