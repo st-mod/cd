@@ -621,7 +621,7 @@
 {demo [
     {css-src main.css, ucs-src ucs.js, global []}
     {[[\left(\vcenter{CD [
-        {CD [
+        {style border: 1px dashed, CD [
             A
             {to 0 1, ar []}
             \\
