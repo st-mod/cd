@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "bezier-js": "^5.1.0",
-    "st-std": "^0.26.0"
+    "st-std": "^0.26.1"
   },
   "engines": {
     "node": ">=14.0.0",
