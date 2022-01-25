@@ -424,36 +424,36 @@ export function createArrowMark(mark: ArrowMark, d: Coordinate, base: Coordinate
             new Bezier(trans(...harpoon))
         ]
         case '-harpoon': return [
-            new Bezier(trans(...harpoon.map((val, i) => i % 2 === 0 ? val : -val)))
+            new Bezier(trans(...harpoon.map((value, i) => i % 2 === 0 ? value : -value)))
         ]
         case 'arrow': return [
             new Bezier(trans(...harpoon)),
-            new Bezier(trans(...harpoon.map((val, i) => i % 2 === 0 ? val : -val)))
+            new Bezier(trans(...harpoon.map((value, i) => i % 2 === 0 ? value : -value)))
         ]
         case 'arrow2': return [
             new Bezier(trans(...harpoon2)),
-            new Bezier(trans(...harpoon2.map((val, i) => i % 2 === 0 ? val : -val)))
+            new Bezier(trans(...harpoon2.map((value, i) => i % 2 === 0 ? value : -value)))
         ]
         case 'arrow3': return [
             new Bezier(trans(...harpoon3)),
-            new Bezier(trans(...harpoon3.map((val, i) => i % 2 === 0 ? val : -val))),
+            new Bezier(trans(...harpoon3.map((value, i) => i % 2 === 0 ? value : -value))),
             new Bezier(trans(...harpoon3Line))
         ]
         case 'tail': return [
-            new Bezier(trans(...harpoon.map((val, i) => i % 2 === 0 ? -val : val))),
-            new Bezier(trans(...harpoon.map(val => -val)))
+            new Bezier(trans(...harpoon.map((value, i) => i % 2 === 0 ? -value : value))),
+            new Bezier(trans(...harpoon.map(value => -value)))
         ]
         case 'two': return [
             new Bezier(trans(...harpoon)),
-            new Bezier(trans(...harpoon.map((val, i) => i % 2 === 0 ? val : -val))),
-            new Bezier(trans(...harpoon.map((val, i) => i % 2 === 0 ? val + 4.5 : val))),
-            new Bezier(trans(...harpoon.map((val, i) => i % 2 === 0 ? val + 4.5 : -val)))
+            new Bezier(trans(...harpoon.map((value, i) => i % 2 === 0 ? value : -value))),
+            new Bezier(trans(...harpoon.map((value, i) => i % 2 === 0 ? value + 4.5 : value))),
+            new Bezier(trans(...harpoon.map((value, i) => i % 2 === 0 ? value + 4.5 : -value)))
         ]
         case 'hook': return [
             new Bezier(trans(...hook))
         ]
         case '-hook': return [
-            new Bezier(trans(...hook.map((val, i) => i % 2 === 0 ? val : -val)))
+            new Bezier(trans(...hook.map((value, i) => i % 2 === 0 ? value : -value)))
         ]
         case 'loop': return [
             new Bezier(trans(...hook)),
@@ -461,9 +461,9 @@ export function createArrowMark(mark: ArrowMark, d: Coordinate, base: Coordinate
             new Bezier(trans(...loopLine))
         ]
         case '-loop': return [
-            new Bezier(trans(...hook.map((val, i) => i % 2 === 0 ? val : -val))),
-            new Bezier(trans(...loop.map((val, i) => i % 2 === 0 ? val : -val))),
-            new Bezier(trans(...loopLine.map((val, i) => i % 2 === 0 ? val : -val)))
+            new Bezier(trans(...hook.map((value, i) => i % 2 === 0 ? value : -value))),
+            new Bezier(trans(...loop.map((value, i) => i % 2 === 0 ? value : -value))),
+            new Bezier(trans(...loopLine.map((value, i) => i % 2 === 0 ? value : -value)))
         ]
         case 'bar': return [
             new Bezier(trans(...bar))
@@ -590,7 +590,7 @@ export function absoluteElementToBox(element: AbsoluteElement, heightScale: numb
     const {height, width} = element.container.getBoundingClientRect()
     const scaledHeight = height * heightScale
     const scaledWidth = width * widthScale
-    element.baselineBlock.style.height = scaledHeight + 'em'
+    element.baselineBlock.style.height = `${scaledHeight}em`
     const {top: baseTop} = element.baselineBlock.getBoundingClientRect()
     const {top} = element.container.getBoundingClientRect()
     const scaledBottom = Math.min(scaledHeight, (top - baseTop) * heightScale)
@@ -602,8 +602,8 @@ export function absoluteElementToBox(element: AbsoluteElement, heightScale: numb
     }
 }
 export function placeAbsoluteElement(element: AbsoluteElement, coordinate: Coordinate) {
-    element.element.style.left = coordinate.x + 'em'
-    element.baselineBlock.style.height = coordinate.y + 'em'
+    element.element.style.left = `${coordinate.x}em`
+    element.baselineBlock.style.height = `${coordinate.y}em`
 }
 function createId(baseString: string, baseIdToCount: BaseIdToCount, compiler: Compiler) {
     const baseId = compiler.base.stringToId(baseString)
@@ -918,8 +918,8 @@ interface IdToLabelElement {
     [key: string]: AbsoluteElement | undefined
 }
 interface DrawOptions {
-    readonly gap: Position
-    readonly cellMargin: number
+    gap: Position
+    cellMargin: number
 }
 function draw(cellElements: CellElement[], orderedArrows: Arrow[], idToLabelElement: IdToLabelElement, svg: SVGSVGElement, element: HTMLDivElement, {gap, cellMargin}: DrawOptions) {
     svg.innerHTML = ''
@@ -945,7 +945,7 @@ function draw(cellElements: CellElement[], orderedArrows: Arrow[], idToLabelElem
     } = {}
     for (const {element, position, id} of cellElements) {
         const box = absoluteElementToBox(element, heightScale, widthScale, cellMargin)
-        positionToBox[position.row + ' ' + position.column] = box
+        positionToBox[`${position.row} ${position.column}`] = box
         if (id.length > 0) {
             idToBox[id] = box
         }
@@ -1005,7 +1005,7 @@ function draw(cellElements: CellElement[], orderedArrows: Arrow[], idToLabelElem
         }
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
         path.setAttribute('d', drawArray.join(' '))
-        path.style.strokeWidth = width + 'px'
+        path.style.strokeWidth = `${width}px`
         path.style.fill = 'none'
         if (classStr !== undefined) {
             try {
@@ -1061,7 +1061,7 @@ function draw(cellElements: CellElement[], orderedArrows: Arrow[], idToLabelElem
             }
             if (data.type === 'path') {
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-                path.style.strokeWidth = data.width + 'px'
+                path.style.strokeWidth = `${data.width}px`
                 path.style.stroke = 'black'
                 path.style.fill = 'none'
                 path.setAttribute('d', data.drawString)
@@ -1086,7 +1086,7 @@ function draw(cellElements: CellElement[], orderedArrows: Arrow[], idToLabelElem
         let toBox: Box
         if (typeof from !== 'string') {
             fromCoordinate = getCoordinate(from, rowHeights, columnWidths, gap)
-            const box = positionToBox[from.row + ' ' + from.column]
+            const box = positionToBox[`${from.row} ${from.column}`]
             if (box === undefined) {
                 fromBox = {height: 0, width: 0, top: 0, bottom: 0}
             } else {
@@ -1103,7 +1103,7 @@ function draw(cellElements: CellElement[], orderedArrows: Arrow[], idToLabelElem
         }
         if (typeof to !== 'string') {
             toCoordinate = getCoordinate(to, rowHeights, columnWidths, gap)
-            const box = positionToBox[to.row + ' ' + to.column]
+            const box = positionToBox[`${to.row} ${to.column}`]
             if (box === undefined) {
                 toBox = {height: 0, width: 0, top: 0, bottom: 0}
             } else {
@@ -1301,8 +1301,8 @@ function draw(cellElements: CellElement[], orderedArrows: Arrow[], idToLabelElem
     maskDataArray.forEach(addMask)
     const width = xmax - xmin
     const height = ymax - ymin
-    element.style.width = svg.style.width = width + 'em'
-    element.style.height = svg.style.height = height + 'em'
+    element.style.width = svg.style.width = `${width}em`
+    element.style.height = svg.style.height = `${height}em`
     element.style.verticalAlign = `calc(${textCenter - ymax}em + 0.5ex)`
     svg.setAttribute('viewBox', `${xmin} ${ymin} ${width} ${height}`)
     for (const {element, position} of cellElements) {
@@ -1312,7 +1312,7 @@ function draw(cellElements: CellElement[], orderedArrows: Arrow[], idToLabelElem
             y: coordinate.y - ymin
         })
     }
-    for (const id of Object.keys(idToLabelElement)) {
+    for (const id in idToLabelElement) {
         const labelElement = idToLabelElement[id]
         const base = idToCoordinate[id]
         if (labelElement === undefined || base === undefined) {
