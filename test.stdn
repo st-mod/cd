@@ -1,5 +1,5 @@
 {title [Test]}
-{mod demo@0.9.12, global []}
+{mod demo@0.11.0, global []}
 {global, no-count-inside, demo []}
 {h1 ["cd" vs "CD"]}
 {demo [
@@ -78,7 +78,7 @@
 []
 {h1 [Beamer]}
 {demo [
-    {mod beamer@0.11.2/core, global []}
+    {mod beamer@0.12.1/core, global []}
     {css-src main.css, ucs-src ucs.js, global []}
     {global, size 1100px 500px, frame []}
     {class vcenter, frame [{title [Test]}]}
