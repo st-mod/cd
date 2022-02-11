@@ -1,6 +1,6 @@
 {
   "name": "@ddu6/cd",
-  "version": "0.9.3",
+  "version": "0.10.0",
   "description": "A stdn module for creating commutative diagrams",
   "main": "dist/mod.js",
   "scripts": {
