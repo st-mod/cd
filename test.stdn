@@ -1,5 +1,5 @@
 {title [Test]}
-{mod demo@0.11.2, global []}
+{mod demo@0.11.3, global []}
 {global, no-count-inside, demo []}
 {h1 ["cd" vs "CD"]}
 {demo [
