@@ -1243,8 +1243,8 @@ function draw(cellElements, orderedArrows, idToLabelElement, svg, element, { gap
     return true;
 }
 export const cd = async (unit, compiler) => {
-    const gap = parseGap(unit.options.gap ?? compiler.extractor.extractLastGlobalOption('gap', 'cd', compiler.context.tagToGlobalOptions));
-    const cellMargin = parseMargin(unit.options['cell-margin'] ?? compiler.extractor.extractLastGlobalOption('cell-margin', 'cd', compiler.context.tagToGlobalOptions), 'cell');
+    const gap = parseGap(unit.options.gap ?? compiler.context.extractLastGlobalOption('gap', 'cd'));
+    const cellMargin = parseMargin(unit.options['cell-margin'] ?? compiler.context.extractLastGlobalOption('cell-margin', 'cd'), 'cell');
     const element = document.createElement('div');
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     element.classList.add('cd');
@@ -1255,9 +1255,9 @@ export const cd = async (unit, compiler) => {
     element.append(svg);
     const { cellElements, arrows, idSet } = await extractCellElements(unit.children, svg, compiler, {
         katex: unit.tag === 'CD',
-        arrowMarginOption: unit.options['arrow-margin'] ?? compiler.extractor.extractLastGlobalOption('arrow-margin', 'cd', compiler.context.tagToGlobalOptions),
-        arrowWidthOption: unit.options['arrow-width'] ?? compiler.extractor.extractLastGlobalOption('arrow-width', 'cd', compiler.context.tagToGlobalOptions),
-        labelMarginOption: unit.options['label-margin'] ?? compiler.extractor.extractLastGlobalOption('label-margin', 'cd', compiler.context.tagToGlobalOptions)
+        arrowMarginOption: unit.options['arrow-margin'] ?? compiler.context.extractLastGlobalOption('arrow-margin', 'cd'),
+        arrowWidthOption: unit.options['arrow-width'] ?? compiler.context.extractLastGlobalOption('arrow-width', 'cd'),
+        labelMarginOption: unit.options['label-margin'] ?? compiler.context.extractLastGlobalOption('label-margin', 'cd')
     });
     const { orderedArrows, idToLabelElement } = await orderArrows(arrows, idSet, svg, compiler);
     observeAdjustments(async () => {
