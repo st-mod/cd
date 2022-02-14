@@ -78,7 +78,7 @@
 []
 {h1 [Beamer]}
 {demo [
-    {mod beamer@0.16.0/core, global []}
+    {mod beamer@0.16.1/core, global []}
     {css-src main.css, ucs-src ucs.js, global []}
     {global, size 1100px 500px, frame []}
     {class vcenter, frame [{title [Test]}]}
