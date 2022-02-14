@@ -1,5 +1,110 @@
 import { Bezier } from 'bezier-js';
 import { observeAdjustments } from 'st-std/dist/observe';
+export function angleToD(angle) {
+    return {
+        x: Math.cos(angle / 180 * Math.PI),
+        y: -Math.sin(angle / 180 * Math.PI)
+    };
+}
+export function dToAngle(d) {
+    const angle = Math.acos(d.x) / Math.PI * 180;
+    if (d.y <= 0) {
+        return angle;
+    }
+    return 360 - angle;
+}
+export function getEdgePoint(angle, base, box) {
+    angle = angle % 360;
+    if (angle < 0) {
+        angle += 360;
+    }
+    if (angle === 0) {
+        return {
+            x: base.x + box.width / 2,
+            y: base.y
+        };
+    }
+    if (angle === 180) {
+        return {
+            x: base.x - box.width / 2,
+            y: base.y
+        };
+    }
+    if (angle === 90) {
+        return {
+            x: base.x,
+            y: base.y - box.top
+        };
+    }
+    if (angle === 270) {
+        return {
+            x: base.x,
+            y: base.y + box.bottom
+        };
+    }
+    const k = Math.abs(Math.tan(angle / 180 * Math.PI));
+    if (angle < 90) {
+        const x = Math.min(box.width / 2, box.top / k);
+        const y = Math.min(box.top, box.width * k / 2);
+        return { x: base.x + x, y: base.y - y };
+    }
+    if (angle < 180) {
+        const x = Math.min(box.width / 2, box.top / k);
+        const y = Math.min(box.top, box.width * k / 2);
+        return { x: base.x - x, y: base.y - y };
+    }
+    if (angle < 270) {
+        const x = Math.min(box.width / 2, box.bottom / k);
+        const y = Math.min(box.bottom, box.width * k / 2);
+        return { x: base.x - x, y: base.y + y };
+    }
+    const x = Math.min(box.width / 2, box.bottom / k);
+    const y = Math.min(box.bottom, box.width * k / 2);
+    return { x: base.x + x, y: base.y + y };
+}
+export function createAbsoluteElement(content) {
+    const element = document.createElement('div');
+    const centeredBlock = document.createElement('div');
+    const baselineBlock = document.createElement('div');
+    const container = document.createElement('div');
+    element.style.position = 'absolute';
+    element.style.top = '0';
+    element.style.width = '0';
+    element.style.display = 'flex';
+    element.style.justifyContent = 'center';
+    baselineBlock.style.display = 'inline-block';
+    container.style.display = 'inline-block';
+    container.style.verticalAlign = '-0.5ex';
+    container.style.width = 'max-content';
+    element.append(centeredBlock);
+    centeredBlock.append(baselineBlock);
+    centeredBlock.append(container);
+    container.append(content);
+    return {
+        element,
+        baselineBlock,
+        container
+    };
+}
+export function absoluteElementToBox(element, heightScale, widthScale, margin) {
+    const { height, width } = element.container.getBoundingClientRect();
+    const scaledHeight = height * heightScale;
+    const scaledWidth = width * widthScale;
+    element.baselineBlock.style.height = `${scaledHeight}em`;
+    const { top: baseTop } = element.baselineBlock.getBoundingClientRect();
+    const { top } = element.container.getBoundingClientRect();
+    const scaledBottom = Math.min(scaledHeight, (top - baseTop) * heightScale);
+    return {
+        height: scaledHeight + 2 * margin,
+        width: scaledWidth + 2 * margin,
+        top: scaledHeight - scaledBottom + margin,
+        bottom: scaledBottom + margin
+    };
+}
+export function placeAbsoluteElement(element, coordinate) {
+    element.element.style.left = `${coordinate.x}em`;
+    element.baselineBlock.style.height = `${coordinate.y}em`;
+}
 const defaultRowGap = 1.8;
 const defaultColumnGap = 2.4;
 const defaultCellMargin = .5;
@@ -209,68 +314,6 @@ function parseClear(option) {
         }
     }
     return false;
-}
-export function angleToD(angle) {
-    return {
-        x: Math.cos(angle / 180 * Math.PI),
-        y: -Math.sin(angle / 180 * Math.PI)
-    };
-}
-export function dToAngle(d) {
-    const angle = Math.acos(d.x) / Math.PI * 180;
-    if (d.y <= 0) {
-        return angle;
-    }
-    return 360 - angle;
-}
-export function getEdgePoint(angle, base, box) {
-    angle = angle % 360;
-    if (angle < 0) {
-        angle += 360;
-    }
-    if (angle === 0) {
-        return {
-            x: base.x + box.width / 2,
-            y: base.y
-        };
-    }
-    if (angle === 180) {
-        return {
-            x: base.x - box.width / 2,
-            y: base.y
-        };
-    }
-    if (angle === 90) {
-        return {
-            x: base.x,
-            y: base.y - box.top
-        };
-    }
-    if (angle === 270) {
-        return {
-            x: base.x,
-            y: base.y + box.bottom
-        };
-    }
-    const k = Math.abs(Math.tan(angle / 180 * Math.PI));
-    if (angle < 90) {
-        const x = Math.min(box.width / 2, box.top / k);
-        const y = Math.min(box.top, box.width * k / 2);
-        return { x: base.x + x, y: base.y - y };
-    }
-    if (angle < 180) {
-        const x = Math.min(box.width / 2, box.top / k);
-        const y = Math.min(box.top, box.width * k / 2);
-        return { x: base.x - x, y: base.y - y };
-    }
-    if (angle < 270) {
-        const x = Math.min(box.width / 2, box.bottom / k);
-        const y = Math.min(box.bottom, box.width * k / 2);
-        return { x: base.x - x, y: base.y + y };
-    }
-    const x = Math.min(box.width / 2, box.bottom / k);
-    const y = Math.min(box.bottom, box.width * k / 2);
-    return { x: base.x + x, y: base.y + y };
 }
 const harpoon = [
     5.4, 6.5,
@@ -484,49 +527,6 @@ export function piecesToSquiggle(pieces) {
         currentLength = nextLength;
     }
     return out;
-}
-export function createAbsoluteElement(content) {
-    const element = document.createElement('div');
-    const centeredBlock = document.createElement('div');
-    const baselineBlock = document.createElement('div');
-    const container = document.createElement('div');
-    element.style.position = 'absolute';
-    element.style.top = '0';
-    element.style.width = '0';
-    element.style.display = 'flex';
-    element.style.justifyContent = 'center';
-    baselineBlock.style.display = 'inline-block';
-    container.style.display = 'inline-block';
-    container.style.verticalAlign = '-0.5ex';
-    container.style.width = 'max-content';
-    element.append(centeredBlock);
-    centeredBlock.append(baselineBlock);
-    centeredBlock.append(container);
-    container.append(content);
-    return {
-        element,
-        baselineBlock,
-        container
-    };
-}
-export function absoluteElementToBox(element, heightScale, widthScale, margin) {
-    const { height, width } = element.container.getBoundingClientRect();
-    const scaledHeight = height * heightScale;
-    const scaledWidth = width * widthScale;
-    element.baselineBlock.style.height = `${scaledHeight}em`;
-    const { top: baseTop } = element.baselineBlock.getBoundingClientRect();
-    const { top } = element.container.getBoundingClientRect();
-    const scaledBottom = Math.min(scaledHeight, (top - baseTop) * heightScale);
-    return {
-        height: scaledHeight + 2 * margin,
-        width: scaledWidth + 2 * margin,
-        top: scaledHeight - scaledBottom + margin,
-        bottom: scaledBottom + margin
-    };
-}
-export function placeAbsoluteElement(element, coordinate) {
-    element.element.style.left = `${coordinate.x}em`;
-    element.baselineBlock.style.height = `${coordinate.y}em`;
 }
 function createId(baseString, baseIdToCount, compiler) {
     const baseId = compiler.base.stringToId(baseString);

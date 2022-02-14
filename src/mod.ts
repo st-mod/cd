@@ -2,20 +2,6 @@ import type {STDN, STDNUnit, STDNUnitOptions} from 'stdn'
 import type {Compiler, UnitCompiler} from '@ddu6/stc'
 import {Bezier} from 'bezier-js'
 import {observeAdjustments} from 'st-std/dist/observe'
-const defaultRowGap = 1.8
-const defaultColumnGap = 2.4
-const defaultCellMargin = .5
-const defaultBendAngle = 30
-const squigglePeriod = .5
-const defaultArrowWidth = .04
-const arrowBigMarkMargin = 4 * defaultArrowWidth
-const twoArrowBodyShift = 2.5 * defaultArrowWidth
-const defaultArrowMargin = 6 * defaultArrowWidth
-const defaultArrowShift = defaultArrowMargin
-const defaultLabelMargin = defaultCellMargin
-const defaultLabelShift = .8
-type ArrowMark = 'arrow' | 'arrow2' | 'arrow3' | 'bar' | 'bar2' | 'bar3' | 'harpoon' | '-harpoon' | 'hook' | '-hook' | 'loop' | '-loop' | 'tail' | 'two' | 'none'
-type ArrowBody = 'one' | 'two' | 'three' | 'squiggle'
 interface Coordinate {
     x: number
     y: number
@@ -26,10 +12,111 @@ interface Box {
     top: number
     bottom: number
 }
-interface AbsoluteElement {
-    element: HTMLDivElement
-    baselineBlock: HTMLDivElement
-    container: HTMLDivElement
+export function angleToD(angle: number): Coordinate {
+    return {
+        x: Math.cos(angle / 180 * Math.PI),
+        y: -Math.sin(angle / 180 * Math.PI)
+    }
+}
+export function dToAngle(d: Coordinate) {
+    const angle = Math.acos(d.x) / Math.PI * 180
+    if (d.y <= 0) {
+        return angle
+    }
+    return 360 - angle
+}
+export function getEdgePoint(angle: number, base: Coordinate, box: Box): Coordinate {
+    angle = angle % 360
+    if (angle < 0) {
+        angle += 360
+    }
+    if (angle === 0) {
+        return {
+            x: base.x + box.width / 2,
+            y: base.y
+        }
+    }
+    if (angle === 180) {
+        return {
+            x: base.x - box.width / 2,
+            y: base.y
+        }
+    }
+    if (angle === 90) {
+        return {
+            x: base.x,
+            y: base.y - box.top
+        }
+    }
+    if (angle === 270) {
+        return {
+            x: base.x,
+            y: base.y + box.bottom
+        }
+    }
+    const k = Math.abs(Math.tan(angle / 180 * Math.PI))
+    if (angle < 90) {
+        const x = Math.min(box.width / 2, box.top / k)
+        const y = Math.min(box.top, box.width * k / 2)
+        return {x: base.x + x, y: base.y - y}
+    }
+    if (angle < 180) {
+        const x = Math.min(box.width / 2, box.top / k)
+        const y = Math.min(box.top, box.width * k / 2)
+        return {x: base.x - x, y: base.y - y}
+    }
+    if (angle < 270) {
+        const x = Math.min(box.width / 2, box.bottom / k)
+        const y = Math.min(box.bottom, box.width * k / 2)
+        return {x: base.x - x, y: base.y + y}
+    }
+    const x = Math.min(box.width / 2, box.bottom / k)
+    const y = Math.min(box.bottom, box.width * k / 2)
+    return {x: base.x + x, y: base.y + y}
+}
+export function createAbsoluteElement(content: Node) {
+    const element = document.createElement('div')
+    const centeredBlock = document.createElement('div')
+    const baselineBlock = document.createElement('div')
+    const container = document.createElement('div')
+    element.style.position = 'absolute'
+    element.style.top = '0'
+    element.style.width = '0'
+    element.style.display = 'flex'
+    element.style.justifyContent = 'center'
+    baselineBlock.style.display = 'inline-block'
+    container.style.display = 'inline-block'
+    container.style.verticalAlign = '-0.5ex'
+    container.style.width = 'max-content'
+    element.append(centeredBlock)
+    centeredBlock.append(baselineBlock)
+    centeredBlock.append(container)
+    container.append(content)
+    return {
+        element,
+        baselineBlock,
+        container
+    }
+}
+type AbsoluteElement = ReturnType<typeof createAbsoluteElement>
+export function absoluteElementToBox(element: AbsoluteElement, heightScale: number, widthScale: number, margin: number): Box {
+    const {height, width} = element.container.getBoundingClientRect()
+    const scaledHeight = height * heightScale
+    const scaledWidth = width * widthScale
+    element.baselineBlock.style.height = `${scaledHeight}em`
+    const {top: baseTop} = element.baselineBlock.getBoundingClientRect()
+    const {top} = element.container.getBoundingClientRect()
+    const scaledBottom = Math.min(scaledHeight, (top - baseTop) * heightScale)
+    return {
+        height: scaledHeight + 2 * margin,
+        width: scaledWidth + 2 * margin,
+        top: scaledHeight - scaledBottom + margin,
+        bottom: scaledBottom + margin
+    }
+}
+export function placeAbsoluteElement(element: AbsoluteElement, coordinate: Coordinate) {
+    element.element.style.left = `${coordinate.x}em`
+    element.baselineBlock.style.height = `${coordinate.y}em`
 }
 interface Position {
     row: number
@@ -56,6 +143,8 @@ interface Label {
     id: string
     clear: boolean | string[]
 }
+type ArrowMark = 'arrow' | 'arrow2' | 'arrow3' | 'bar' | 'bar2' | 'bar3' | 'harpoon' | '-harpoon' | 'hook' | '-hook' | 'loop' | '-loop' | 'tail' | 'two' | 'none'
+type ArrowBody = 'one' | 'two' | 'three' | 'squiggle'
 interface Arrow {
     from: Position | string
     to: Position | string
@@ -72,9 +161,6 @@ interface Arrow {
     g: SVGGElement
     clear: boolean | string[]
 }
-interface BaseIdToCount {
-    [key: string]: number | undefined
-}
 interface MaskData {
     data: {
         type: 'path',
@@ -89,6 +175,18 @@ interface MaskData {
     }
     clear: number | string[],
 }
+const defaultRowGap = 1.8
+const defaultColumnGap = 2.4
+const defaultCellMargin = .5
+const defaultBendAngle = 30
+const squigglePeriod = .5
+const defaultArrowWidth = .04
+const arrowBigMarkMargin = 4 * defaultArrowWidth
+const twoArrowBodyShift = 2.5 * defaultArrowWidth
+const defaultArrowMargin = 6 * defaultArrowWidth
+const defaultArrowShift = defaultArrowMargin
+const defaultLabelMargin = defaultCellMargin
+const defaultLabelShift = .8
 function parseGap(option: STDNUnitOptions[string]): Position {
     if (typeof option === 'number' && isFinite(option) && option >= 0) {
         return {
@@ -286,68 +384,6 @@ function parseClear(option: STDNUnitOptions[string]): boolean | string[] {
         }
     }
     return false
-}
-export function angleToD(angle: number): Coordinate {
-    return {
-        x: Math.cos(angle / 180 * Math.PI),
-        y: -Math.sin(angle / 180 * Math.PI)
-    }
-}
-export function dToAngle(d: Coordinate) {
-    const angle = Math.acos(d.x) / Math.PI * 180
-    if (d.y <= 0) {
-        return angle
-    }
-    return 360 - angle
-}
-export function getEdgePoint(angle: number, base: Coordinate, box: Box): Coordinate {
-    angle = angle % 360
-    if (angle < 0) {
-        angle += 360
-    }
-    if (angle === 0) {
-        return {
-            x: base.x + box.width / 2,
-            y: base.y
-        }
-    }
-    if (angle === 180) {
-        return {
-            x: base.x - box.width / 2,
-            y: base.y
-        }
-    }
-    if (angle === 90) {
-        return {
-            x: base.x,
-            y: base.y - box.top
-        }
-    }
-    if (angle === 270) {
-        return {
-            x: base.x,
-            y: base.y + box.bottom
-        }
-    }
-    const k = Math.abs(Math.tan(angle / 180 * Math.PI))
-    if (angle < 90) {
-        const x = Math.min(box.width / 2, box.top / k)
-        const y = Math.min(box.top, box.width * k / 2)
-        return {x: base.x + x, y: base.y - y}
-    }
-    if (angle < 180) {
-        const x = Math.min(box.width / 2, box.top / k)
-        const y = Math.min(box.top, box.width * k / 2)
-        return {x: base.x - x, y: base.y - y}
-    }
-    if (angle < 270) {
-        const x = Math.min(box.width / 2, box.bottom / k)
-        const y = Math.min(box.bottom, box.width * k / 2)
-        return {x: base.x - x, y: base.y + y}
-    }
-    const x = Math.min(box.width / 2, box.bottom / k)
-    const y = Math.min(box.bottom, box.width * k / 2)
-    return {x: base.x + x, y: base.y + y}
 }
 const harpoon = [
     5.4, 6.5,
@@ -562,48 +598,8 @@ export function piecesToSquiggle(pieces: Bezier[]): Bezier[] {
     }
     return out
 }
-export function createAbsoluteElement(content: Node): AbsoluteElement {
-    const element = document.createElement('div')
-    const centeredBlock = document.createElement('div')
-    const baselineBlock = document.createElement('div')
-    const container = document.createElement('div')
-    element.style.position = 'absolute'
-    element.style.top = '0'
-    element.style.width = '0'
-    element.style.display = 'flex'
-    element.style.justifyContent = 'center'
-    baselineBlock.style.display = 'inline-block'
-    container.style.display = 'inline-block'
-    container.style.verticalAlign = '-0.5ex'
-    container.style.width = 'max-content'
-    element.append(centeredBlock)
-    centeredBlock.append(baselineBlock)
-    centeredBlock.append(container)
-    container.append(content)
-    return {
-        element,
-        baselineBlock,
-        container
-    }
-}
-export function absoluteElementToBox(element: AbsoluteElement, heightScale: number, widthScale: number, margin: number): Box {
-    const {height, width} = element.container.getBoundingClientRect()
-    const scaledHeight = height * heightScale
-    const scaledWidth = width * widthScale
-    element.baselineBlock.style.height = `${scaledHeight}em`
-    const {top: baseTop} = element.baselineBlock.getBoundingClientRect()
-    const {top} = element.container.getBoundingClientRect()
-    const scaledBottom = Math.min(scaledHeight, (top - baseTop) * heightScale)
-    return {
-        height: scaledHeight + 2 * margin,
-        width: scaledWidth + 2 * margin,
-        top: scaledHeight - scaledBottom + margin,
-        bottom: scaledBottom + margin
-    }
-}
-export function placeAbsoluteElement(element: AbsoluteElement, coordinate: Coordinate) {
-    element.element.style.left = `${coordinate.x}em`
-    element.baselineBlock.style.height = `${coordinate.y}em`
+interface BaseIdToCount {
+    [key: string]: number | undefined
 }
 function createId(baseString: string, baseIdToCount: BaseIdToCount, compiler: Compiler) {
     const baseId = compiler.base.stringToId(baseString)
