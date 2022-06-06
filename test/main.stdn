@@ -3,7 +3,7 @@
 {global, no-count-inside, demo []}
 {h1 ["cd" vs "CD"]}
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {cd [
         A
         {ar, '\phi'}
@@ -20,7 +20,7 @@
 ]}
 []
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {CD [
         A
         {ar, '\phi'}
@@ -38,7 +38,7 @@
 []
 {h1 [Multiple Labels]}
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {CD [
         A
         {ar [
@@ -53,7 +53,7 @@
 []
 {h1 [Bend]}
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {CD [
         T
         {to 2 1, bend, ar, 'x'}
@@ -79,7 +79,7 @@
 {h1 [Beamer]}
 {demo [
     {mod beamer@0.16.3/core, global []}
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {global, size 1100px 500px, frame []}
     {class vcenter, frame [{title [Test]}]}
     {class vcenter, frame [{display [{CD [
@@ -107,7 +107,7 @@
 []
 {h1 [Arrows]}
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {CD [
         X
         {tail hook, ar []}
@@ -128,7 +128,7 @@
 ]}
 []
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {CD [
         A
         {bend, ar []}
@@ -156,7 +156,7 @@
 ]}
 []
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {CD [
         A
         {bend, tail bar, ar []}
@@ -184,7 +184,7 @@
 ]}
 []
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {CD [
         A
         {bend, head harpoon, tail hook, ar []}
@@ -212,7 +212,7 @@
 ]}
 []
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {CD [
         A
         {bend, head -harpoon, tail -loop, ar []}
@@ -241,7 +241,7 @@
 []
 {h1 [Transparent Arrow]}
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {CD [
         A
         {ar []}
@@ -259,7 +259,7 @@
 ]}
 []
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {gap - 2.7, CD [
         []
         {class transparent, ar [{shift 0, normal-font-size, 'X\otimes(Y\otimes(Z\otimes T))'}]}
@@ -281,7 +281,7 @@
 []
 {h1 [Arrow Shift]}
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {CD [
         A
         {shift, style color: var(--color-warn), ar []}
@@ -315,7 +315,7 @@
 []
 {h1 [Arrow Width]}
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {cd [
         []
         {width 0.08, tail arrow, ar []}
@@ -326,7 +326,7 @@
 []
 {h1 [Gap]}
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {gap 1.2 -, CD [
         &
         A
@@ -355,7 +355,7 @@
 []
 {h1 [Big Label]}
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {gap 3.6 -, CD [
         A\oplus B
         {ar [{shift 1, pmatrix [
@@ -369,7 +369,7 @@
 []
 {h1 [Id]}
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {gap 1.8 -, CD [
         A
         {to 1 1, ar []}
@@ -394,7 +394,7 @@
 ]}
 []
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {CD [
         A
         {style color: var(--color-keyword), ar []}
@@ -411,7 +411,7 @@
 []
 {h1 [Clear]}
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {CD [
         A
         {to 1 1, ar []}
@@ -426,7 +426,7 @@
 ]}
 []
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {CD [
         &
         f^* E_V
@@ -465,7 +465,7 @@
 ]}
 []
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {CD [
         {from 0 1, to 3 1, shift, clear c3, ar []}
         {from 0 1, to 3 1, shift right, clear c3, ar []}
@@ -501,7 +501,7 @@
 []
 {h1 [Mark and Desc]}
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {CD [
         A
         {ar [{shift 0, '/'}]}
@@ -528,7 +528,7 @@
 []
 {h1 [From and To]}
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {gap - 0, cell-margin 0, cd [
         []
         \\
@@ -550,7 +550,7 @@
 []
 {h1 [Out and In]}
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {CD [
         A
         {to 1 1, out 30 2, in 120 2, ar []}
@@ -564,7 +564,7 @@
 ]}
 []
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {CD [
         A
         {ar []}
@@ -588,7 +588,7 @@
 ]}
 []
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {CD [
         &
         &
@@ -619,7 +619,7 @@
 []
 {h1 [Nest]}
 {demo [
-    {registry .., mod ., global []}
+    {registry .., mod .., global []}
     {[[\left(\vcenter{CD [
         {style border: 1px dashed, CD [
             A
