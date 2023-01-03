@@ -18,10 +18,10 @@ export declare function createAbsoluteElement(content: Node): {
     baselineBlock: HTMLDivElement;
     container: HTMLDivElement;
 };
-declare type AbsoluteElement = ReturnType<typeof createAbsoluteElement>;
+type AbsoluteElement = ReturnType<typeof createAbsoluteElement>;
 export declare function absoluteElementToBox(element: AbsoluteElement, heightScale: number, widthScale: number, margin: number): Box;
 export declare function placeAbsoluteElement(element: AbsoluteElement, coordinate: Coordinate): void;
-declare type ArrowMark = 'arrow' | 'arrow2' | 'arrow3' | 'bar' | 'bar2' | 'bar3' | 'harpoon' | '-harpoon' | 'hook' | '-hook' | 'loop' | '-loop' | 'tail' | 'two' | 'none';
+type ArrowMark = 'arrow' | 'arrow2' | 'arrow3' | 'bar' | 'bar2' | 'bar3' | 'harpoon' | '-harpoon' | 'hook' | '-hook' | 'loop' | '-loop' | 'tail' | 'two' | 'none';
 export declare function createArrowMark(mark: ArrowMark, d: Coordinate, base: Coordinate): Bezier[];
 export declare function piecesToSquiggle(pieces: Bezier[]): Bezier[];
 export declare const cd: UnitCompiler;
